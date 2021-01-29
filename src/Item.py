@@ -10,7 +10,7 @@ class Item:
         A list of the container dimensions
     volume: int
         The total volume of the container
-    serial_number: string
+    serial_number: str
         The serial number of a package
 
     Methods
@@ -32,23 +32,23 @@ class Item:
     volume = length * width * height
     serial_number = ""
 
-    def __init__(self, lengthIn, widthIn, heightIn, serialnumberIn):
+    def __init__(self, lengthIn: int, widthIn: int, heightIn: int, serial_numberIn: str):
         self.length = lengthIn
         self.width = widthIn
         self.height = heightIn
-        self.serial_number = serialnumberIn
+        self.serial_number = serial_numberIn
 
-    def get_length(self):
+    def get_length(self) -> int:
         return self.length
 
-    def get_width(self):
+    def get_width(self) -> int:
         return self.width
 
-    def get_height(self):
+    def get_height(self) -> int:
         return self.height
 
-    def get_size(self):
+    def get_size(self) -> [int, int, int]:
         return self.size
 
-    def get_serial(self):
+    def get_serial(self) -> str:
         return self.serial_number
