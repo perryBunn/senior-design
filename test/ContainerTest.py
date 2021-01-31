@@ -66,6 +66,13 @@ class ContainerTest(unittest.TestCase):
     def testAvailableHeight(self):
         self.assertEqual(self.container.available_height(), 100)
 
+    def testAvailableSize(self):
+        self.assertEqual(self.container.available_size(), [100, 100, 100])
+
+    def testNewContainer(self):
+        self.container.new_container(1, 0, 0, 50, 50, 50)
+        self.assertEqual(self.container.contents[0].length, 50)
+
     def tearDown(self) -> None:
         del self.container
 
