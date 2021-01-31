@@ -7,9 +7,9 @@ class Container:
 
     Attributes
     ----------
-    x, y, z : int
+    x, y, z: int
         Relative coordinates so that the container can be graphed
-    position : list
+    position: list
         A list of the relative coordinates
     length, width, height: int
         Dimensions of the container object
@@ -69,6 +69,44 @@ class Container:
         self.volume = self.length * self.width * self.height
         self.available_volume = self.volume - self.reserved_volume
 
+    def __update_reserved_space(self, length: int = None, width: int = None, height: int = None,
+                                size: [int, int, int] = None) -> bool:
+        """
+        Updated the reserved dimensions for the container.
+        At least one argument is required.
+        :param length: Side length to be added to the reserved length
+        :param width: Side length to be added to the reserved width
+        :param height: Side length to be added to the reserved height
+        :param size: List of side lengths to be added to the reserved dimensions
+        :return: Returns if the operation was successful
+        """
+        status = False
+        if length is not None:
+            if not self.reserved_length + length > self.length:
+                self.reserved_length += length
+                self.reserved_size[0] = self.reserved_length
+                status = True
+        if width is not None:
+            if not self.reserved_width + width > self.width:
+                self.reserved_width += width
+                self.reserved_size[1] = self.reserved_width
+                status = True
+        if height is not None:
+            if not self.reserved_height + height > self.height:
+                self.reserved_height += height
+                self.reserved_size[2] = self.reserved_height
+                status = True
+        if size is not None:
+            if not self.reserved_length + size[0] > self.length:
+                if not self.reserved_width + size[1] > self.width:
+                    if not self.reserved_height + size[2] > self.height:
+                        self.reserved_length += length
+                        self.reserved_width += width
+                        self.reserved_height += height
+                        self.reserved_size = [self.reserved_length, self.reserved_width, self.reserved_height]
+                        status = True
+        return status
+
     def add_item(self, item: Item):
         try:
             # In theory only the first container will create 3 new containers, subsequent iterations will create 0-2
@@ -76,6 +114,8 @@ class Container:
             if res[0]:
                 # New container in the X dimension
                 # TODO: Need to update the reserved_length
+                # TODO: I dont know if this will make the correct changes that im thinking...
+                self.__update_reserved_space(length=item.length)
                 self.new_container(self.x + 1, self.y, self.z,
                                    self.available_length(),
                                    self.available_width(),
@@ -83,6 +123,7 @@ class Container:
             if res[1]:
                 # New container in the Y dimension
                 # TODO: Need to update the reserved_width
+                self.__update_reserved_space(width=item.width)
                 self.new_container(self.x, self.y + 1, self.z,
                                    self.available_length(),
                                    self.available_width(),
@@ -90,6 +131,7 @@ class Container:
             if res[2]:
                 # New container in the Z dimension
                 # TODO: Need to update the reserved_height
+                self.__update_reserved_space(height=item.height)
                 self.new_container(self.x, self.y, self.z + 1,
                                    self.available_length(),
                                    self.available_width(),
