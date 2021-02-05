@@ -1,0 +1,19 @@
+# <type>:(<ref number>) <short summary>
+#   |           |               |
+#   |           |               +-> Summary in present tense
+#   |           +-> Refers to story/card/issue #
+#   +-> Type: feat|bug|chore|fix|refactor|style|test
+# Commit subject line should not exceed 50 characters.
+#
+# __Issue:__
+# _<type>_ - *<issue name>*
+# \[[#<issue number](<issue url)\]
+#
+# __Description:__
+# Why do we need this commit?
+#
+# ___Steps to Test:__ # (optional)
+# Step-by-step instructions for practical testing
+#
+# __Changes:__
+# Files Changed
