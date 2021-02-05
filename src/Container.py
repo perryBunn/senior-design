@@ -1,4 +1,6 @@
 import Item
+from Void import Void
+from ItemOverwriteError import ItemOverwriteError
 
 
 class Container:
@@ -25,15 +27,23 @@ class Container:
         The volume of the container that is directly occupied by the Items
     available_volume: int
         The free volume of the container that is not occupied by items
-    contents: list
-        The items stored by the container
+    item: Item
+        The item stored by the container
+    children: list
+        The child containers of the container
 
     Methods
     -------
-    add_item(item)
+    update_reserved_space(int, int, int, [int, int, int]) -> bool:
+        Updated the reserved space of the container. This will most likely get removed.
+    create_child([int, int, int], Item):
+        Will create child Containers and Voids based on the Item in the parent and smallest possible item
+    add_item(Item):
         Adds an Item object to the contents of the container
-    new_container()
-        Adds a new nested container to itself
+    add_container():
+        Adds a new child container to itself
+    add_void():
+        Adds a new child void to itself
     is_smaller(item) -> list:
         Checks to see if the item is smaller than the container
     available_length() -> int:
@@ -55,26 +65,29 @@ class Container:
     reserved_size = [reserved_length, reserved_width, reserved_height]
     reserved_volume = 0
     available_volume = -1
-    contents = []
+    item = None
+    children = []
 
-    def __init__(self, xIn, yIn, zIn, lengthIn, widthIn, heightIn):
-        self.x = xIn
-        self.y = yIn
-        self.z = zIn
+    def __init__(self, x, y, z, length, width, height, item: Item = None):
+        self.x = x
+        self.y = y
+        self.z = z
         self.position = [self.x, self.y, self.z]
-        self.length = lengthIn
-        self.width = widthIn
-        self.height = heightIn
+        self.length = length
+        self.width = width
+        self.height = height
         self.size = [self.length, self.width, self.height]
         self.volume = self.length * self.width * self.height
         self.reserved_size = [self.reserved_length, self.reserved_width, self.reserved_height]
         self.available_volume = self.volume - self.reserved_volume
+        if item is not None:
+            self.item = item
 
     def update_reserved_space(self, length: int = None, width: int = None, height: int = None,
                               size: [int, int, int] = None) -> bool:
         """
         Updated the reserved dimensions for the container.
-        At least one argument is required.
+        At least/most one argument is required.
         :param length: Side length to be added to the reserved length
         :param width: Side length to be added to the reserved width
         :param height: Side length to be added to the reserved height
@@ -99,11 +112,8 @@ class Container:
                 status = True
         if size is not None:
             if not self.reserved_length + size[0] > self.length:
-                print('passed length')
                 if not self.reserved_width + size[1] > self.width:
-                    print('passed width')
                     if not self.reserved_height + size[2] > self.height:
-                        print('passed height')
                         self.reserved_length += size[0]
                         self.reserved_width += size[1]
                         self.reserved_height += size[2]
@@ -111,40 +121,80 @@ class Container:
                         status = True
         return status
 
-    def add_item(self, item: Item):
-        # In theory only the first container will create 3 new containers, subsequent iterations will create 0-2
-        res = self.is_smaller(item)
-        if res[0]:
-            # New container in the X dimension
-            # TODO: Need to update the reserved_length
-            # TODO: I dont know if this will make the correct changes that im thinking...
-            self.update_reserved_space(length=item.__length)
-            self.new_container(self.x + 1, self.y, self.z,
-                               self.available_length(),
-                               self.available_width(),
-                               self.available_height())
-        if res[1]:
-            # New container in the Y dimension
-            # TODO: Need to update the reserved_width
-            self.update_reserved_space(width=item.__width)
-            self.new_container(self.x, self.y + 1, self.z,
-                               self.available_length(),
-                               self.available_width(),
-                               self.available_height())
-        if res[2]:
-            # New container in the Z dimension
-            # TODO: Need to update the reserved_height
-            self.update_reserved_space(height=item.__height)
-            self.new_container(self.x, self.y, self.z + 1,
-                               self.available_length(),
-                               self.available_width(),
-                               self.available_height())
-        self.contents.append(item)
+    def create_child(self, smallest_possible_fit: [int, int, int], item: Item = None):
+        """ Visualization
+        Top looking down                          Y-axis looking at X     X-axis looking at Y
+        (0,0,0) x--------------------             ------------------      ------------------
+                | Item    | Child x |             | Child z        |      | Child z        |
+                |         |         |             |                |      |                |
+                -----------         |             |                |      |                |
+                |         |         |             ------------------      ------------------
+                | Child y |         |             | Item | Child y |      | Child x | Item |
+                |         |         |             |      |         |      |         |      |
+                ---------------------     (0,0,0) x-----------------      -----------------x (0,0,0)
+        """
+        if type(self) is not Void:
+            if item is None:  # There is an item in the container
+                available_length = self.length - self.item.get_length()
+                available_width = self.width - self.item.get_width()
+                available_height = self.height - self.item.get_height()
 
-    def new_container(self, x, y, z, length, width, height):
+                # New container in the X dimension
+                if available_length >= smallest_possible_fit[0]:
+                    self.add_container(self.x + 1, self.y, self.z, available_length, self.width, self.item.get_height())
+                else:
+                    self.add_void(self.x + 1, self.y, self.z, available_length, self.width, self.item.get_height())
+
+                # New container in the Y dimension
+                if available_width >= smallest_possible_fit[1]:
+                    self.add_container(self.x, self.y + 1, self.z, self.item.get_length(), available_width, self.item.get_height())
+                else:
+                    self.add_void(self.x, self.y + 1, self.z, self.item.get_length(), available_width, self.item.get_height())
+
+                if available_height >= smallest_possible_fit[2]:
+                    self.add_container(self.x, self.y, self.z + 1, self.length, self.width, available_height)
+                else:
+                    self.add_void(self.x, self.y, self.z + 1, self.length, self.width, available_height)
+            else:  # There is not an item in the container
+                available_length = self.length - item.get_length()
+                available_width = self.width - item.get_width()
+                available_height = self.height - item.get_height()
+
+                # New container in the X dimension
+                if available_length >= smallest_possible_fit[0]:
+                    self.add_container(self.x + 1, self.y, self.z, available_length, self.width, item.get_height())
+                else:
+                    self.add_void(self.x + 1, self.y, self.z, available_length, self.width, item.get_height())
+
+                # New container in the Y dimension
+                if available_width >= smallest_possible_fit[1]:
+                    self.add_container(self.x, self.y + 1, self.z, item.get_length(), available_width,
+                                       item.get_height())
+                else:
+                    self.add_void(self.x, self.y + 1, self.z, item.get_length(), available_width, item.get_height())
+
+                if available_height >= smallest_possible_fit[2]:
+                    self.add_container(self.x, self.y, self.z + 1, self.length, self.width, available_height)
+                else:
+                    self.add_void(self.x, self.y, self.z + 1, self.length, self.width, available_height)
+
+    def add_item(self, item: Item):
+        if self.item is not None:
+            raise ItemOverwriteError(self.item)
+        else:
+            self.item = item
+
+    def add_container(self, x, y, z, length, width, height):
         # TODO: What if new child container is at the same position as the parent?
+        # TODO: What if the parent container already has 3 children?
         cont = Container(x, y, z, length, width, height)
-        self.contents.append(cont)
+        self.children.append(cont)
+
+    def add_void(self, x, y, z, length, width, height):
+        # TODO: What if new child void is at the same position as the parent?
+        # TODO: What if the parent container already has 3 children?
+        void = Void(x, y, z, length, width, height)
+        self.children.append(void)
 
     def is_smaller(self, item: Item) -> [bool, bool, bool]:
         res = [False, False, False]
