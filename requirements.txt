@@ -1,1 +1,1 @@
-# So far there are no external requirements
+PySide2==5.12

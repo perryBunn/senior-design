@@ -5,7 +5,7 @@ from PySide2.QtWidgets import (QApplication, QLabel, QPushButton,
 from PySide2.QtCore import Slot, Qt
 
 
-class MyWidget(QWidget):
+class GUI(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
@@ -29,10 +29,20 @@ class MyWidget(QWidget):
         self.text.setText(random.choice(self.hello))
 
 
+def start():
+    app = QApplication(sys.argv)
+
+    widget = GUI()
+    widget.resize(800, 600)
+    widget.show()
+
+    sys.exit(app.exec_())
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    widget = MyWidget()
+    widget = GUI()
     widget.resize(800, 600)
     widget.show()
 

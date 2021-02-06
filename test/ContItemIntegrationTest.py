@@ -1,7 +1,7 @@
 import unittest
 import gc
-from Container import Container
-from Item import Item
+from lib.Container import Container
+from lib.Item import Item
 
 
 class ContItemIntegration(unittest.TestCase):

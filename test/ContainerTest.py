@@ -1,6 +1,6 @@
 import unittest
 
-from Container import Container
+from lib.Container import Container
 
 
 class ContainerTest(unittest.TestCase):
