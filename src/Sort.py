@@ -11,11 +11,10 @@ def item_sort(unsorted: [Item]) -> list:
     :param unsorted: list of unsorted items
     :return: sorted list of items
     """
-    # https://en.wikipedia.org/wiki/Timsort
     raise NotImplementedError
 
 
-def calc_min_run(n):
+def calc_min_run(n) -> int:
     r = 0
     while n >= MIN_MERGE:
         r |= n & 1
@@ -23,41 +22,49 @@ def calc_min_run(n):
     return n+r
 
 
-def insertion_sort(arr, left, right):
+def insertion(arr, left, right) -> list:
     for i in range(left + 1, right + 1):
         j = i
         while j > left and arr[j] < arr[j - 1]:
             arr[j], arr[j - 1] = arr[j - 1], arr[j]
             j -= 1
+    return arr
 
 
-def merge(arr, left, mid, right):
-    len1, len2 = mid-left, right-mid
-    left_arr, right_arr = [], []
+def merge(array, left_index, right_index):
+    if left_index >= right_index:
+        return
 
-    for i in range(0, len1):
-        left_arr.append(arr[left+i])
-    for i in range(0, len2):
-        right_arr.append(arr[mid+1+i])
+    middle = (left_index + right_index)//2
+    merge(array, left_index, middle)
+    merge(array, middle + 1, right_index)
+    __combine(array, left_index, right_index, middle)
 
-    i, j, k = 0, 0, left
 
-    while i < len1 and j < len2:
-        if left_arr[i] <= right_arr[j]:
-            arr[k] = left_arr[i]
-            i += 1
+def __combine(arr, left, right, mid):
+    left_copy = arr[left:mid + 1]
+    right_copy = arr[mid + 1:right + 1]
+
+    left_index = 0
+    right_index = 0
+    sorted_index = left
+    while left_index < len(left_copy) and right_index < len(right_copy):
+        if left_copy[left_index] <= right_copy[right_index]:
+            arr[sorted_index] = left_copy[left_index]
+            left_index = left_index + 1
         else:
-            arr[k] = right_arr[j]
-            j += 1
-        k += 1
-    while i < len1:
-        arr[k] = left_arr[i]
-        k += 1
-        j += 1
-    while j < len2:
-        arr[k] = right_arr[j]
-        k += 1
-        j += 1
+            arr[sorted_index] = right_copy[right_index]
+            right_index = right_index + 1
+        sorted_index = sorted_index + 1
+    while left_index < len(left_copy):
+        arr[sorted_index] = left_copy[left_index]
+        left_index = left_index + 1
+        sorted_index = sorted_index + 1
+    while right_index < len(right_copy):
+        arr[sorted_index] = right_copy[right_index]
+        right_index = right_index + 1
+        sorted_index = sorted_index + 1
+    return arr
 
 
 def tim_sort(arr: list) -> list:
@@ -66,15 +73,14 @@ def tim_sort(arr: list) -> list:
 
     for start in range(0, n, min_run):
         end = min(start+min_run-1, n-1)
-        insertion_sort(arr, start, end)
+        insertion(arr, start, end)
 
     size = min_run
     while size < n:
         for left in range(0, n, 2*size):
-            mid = min(n-1, left+size+1)
             right = min(left+2*size-1, n-1)
 
-            merge(arr, left, mid, right)
+            merge(arr, left, right)
 
         size = 2*size
     return arr

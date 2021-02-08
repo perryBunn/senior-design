@@ -1,6 +1,6 @@
-import Item
-from Void import Void
-from ItemOverwriteError import ItemOverwriteError
+from lib.Item import Item
+from lib.Void import Void
+from lib.ItemOverwriteError import ItemOverwriteError
 
 
 class Container:

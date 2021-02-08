@@ -1,4 +1,4 @@
-import Item
+from lib.Item import Item
 
 
 class ItemOverwriteError(Exception):
