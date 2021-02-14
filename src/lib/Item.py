@@ -38,6 +38,7 @@ class Item:
     __volume = -1
     __mass = -1
     __serial_number = ""
+    __rank = -1
 
     def __init__(self, lengthIn: int, widthIn: int, heightIn: int, massIn: int, serial_numberIn: str):
         self.__length = lengthIn
@@ -47,6 +48,7 @@ class Item:
         self.__volume = self.__length * self.__width * self.__height
         self.__mass = massIn
         self.__serial_number = serial_numberIn
+        self.__rank = self.__volume * self.__mass
 
     def get_length(self) -> int:
         return self.__length
@@ -68,3 +70,10 @@ class Item:
 
     def get_serial(self) -> str:
         return self.__serial_number
+
+    def get_rank(self) -> int:
+        return self.__rank
+
+    def __str__(self):
+        return f"Dimensions: {self.__size} Volume: {self.__volume} Mass: {self.__mass} Serial: {self.__serial_number}" \
+               f" Rank: {self.__rank}"

@@ -11,7 +11,9 @@ def item_sort(unsorted: [Item]) -> list:
     :param unsorted: list of unsorted items
     :return: sorted list of items
     """
-    raise NotImplementedError
+    temp = tim_sort(unsorted)
+    temp.reverse()
+    return temp
 
 
 def calc_min_run(n) -> int:
@@ -25,7 +27,7 @@ def calc_min_run(n) -> int:
 def insertion(arr, left, right) -> list:
     for i in range(left + 1, right + 1):
         j = i
-        while j > left and arr[j] < arr[j - 1]:
+        while j > left and arr[j].get_rank() < arr[j - 1].get_rank():
             arr[j], arr[j - 1] = arr[j - 1], arr[j]
             j -= 1
     return arr
@@ -49,7 +51,7 @@ def __combine(arr, left, right, mid):
     right_index = 0
     sorted_index = left
     while left_index < len(left_copy) and right_index < len(right_copy):
-        if left_copy[left_index] <= right_copy[right_index]:
+        if left_copy[left_index].get_rank() <= right_copy[right_index].get_rank():
             arr[sorted_index] = left_copy[left_index]
             left_index = left_index + 1
         else:

@@ -8,7 +8,7 @@ from lib.Container import Container
 
 class SortTest(unittest.TestCase):
     container: Container
-    length = 64
+    length = 1000
 
     def setUp(self) -> None:
         self.container = Container(0, 0, 0, 100, 100, 100)
