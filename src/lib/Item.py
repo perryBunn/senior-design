@@ -74,6 +74,13 @@ class Item:
     def get_rank(self) -> int:
         return self.__rank
 
+    def rotate(self) -> bool:
+        """ Switches the length and width of the item. Returns a bool if successful.
+
+        :return: Success
+        """
+        raise NotImplementedError
+
     def __str__(self):
         return f"Dimensions: {self.__size} Volume: {self.__volume} Mass: {self.__mass} Serial: {self.__serial_number}" \
                f" Rank: {self.__rank}"

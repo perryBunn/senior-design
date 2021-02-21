@@ -3,14 +3,16 @@ import GUI
 import Ingest
 import logging
 import pandas as pd
-from lib import Item
+from lib import Item, Container
 import Sort
+import palletize
 
 
 def init(data) -> list:
     items = []
     for item in data.iterrows():
-        obj = Item.Item(item[1]["Length"], item[1]["Width"], item[1]["Height"], item[1]["Weight"], item[1]["Code/Serial Number"])
+        obj = Item.Item(item[1]["Length"], item[1]["Width"], item[1]["Height"], item[1]["Weight"],
+                        item[1]["Code/Serial Number"])
         items.append(obj)
     return items
 
@@ -47,7 +49,9 @@ def main():
         items = init(data)
         items = Sort.item_sort(items)
         print(items[0])
-        print(items[len(items)-1])
+        print(items[len(items) - 1])
+        container = Container.Container(0, 0, 0, 10000, 10000, 10000)
+        palletize.palletize(items, container)
 
 
 if __name__ == '__main__':

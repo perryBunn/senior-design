@@ -5,7 +5,7 @@ import logging
 def ingest(path: str, file: str) -> pd.DataFrame:
     logging.debug("Entering ingest()...")
     file_extension = file[-5:]
-    full_name = path + '/' + file
+    full_name = path + file
     if file_extension == ".xlsx":
         data = readExcel(full_name)
     else:

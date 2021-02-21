@@ -217,3 +217,12 @@ class Container:
 
     def available_size(self) -> [int, int, int]:
         return [self.available_length(), self.available_width(), self.available_height()]
+
+    def __str__(self):
+        res = f"Dimensions: {self.size}\nItem: {self.item}\nChild-Containers:"
+        if len(self.children) > 0:
+            for i in self.children:
+                res += f"\n\t+- {type(i)}"
+        else:
+            res += "\n\t+- None"
+        return res
