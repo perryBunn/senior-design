@@ -1,6 +1,6 @@
 import unittest
 
-from lib.Container import Container
+from src.lib.Container import Container
 
 
 class ContainerTest(unittest.TestCase):
@@ -55,7 +55,7 @@ class ContainerTest(unittest.TestCase):
         self.assertEqual(self.container.available_volume, 1000000)
 
     def testContentsEmpty(self):
-        self.assertEqual(self.container.contents, [])
+        self.assertEqual(self.container.children, [])
 
     def testAvailableLength(self):
         self.assertEqual(self.container.available_length(), 100)
@@ -71,7 +71,7 @@ class ContainerTest(unittest.TestCase):
 
     def testNewContainer(self):
         self.container.add_container(1, 0, 0, 50, 50, 50)
-        self.assertEqual(self.container.contents[0].length, 50)
+        self.assertEqual(self.container.children[0].length, 50)
 
     def tearDown(self) -> None:
         del self.container

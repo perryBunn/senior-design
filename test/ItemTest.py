@@ -1,5 +1,5 @@
 import unittest
-from lib.Item import Item
+from src.lib.Item import Item
 
 
 class ItemTest(unittest.TestCase):

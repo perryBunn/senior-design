@@ -1,50 +1,63 @@
 import math
 import random
 import unittest
-import Sort
+import src.Sort as Sort
+import src.lib.Item as Item
 
 from lib.Container import Container
 
 
 class SortTest(unittest.TestCase):
     container: Container
-    length = 1000
+    length = 10000
 
     def setUp(self) -> None:
         self.container = Container(0, 0, 0, 100, 100, 100)
 
     def testInsertionSort(self):
-        sorted_list = []
         test_list = []
-        for i in range(0, self.length):
-            sorted_list.append(i)
-        for i in range(0, self.length):
-            test_list.append(i)
+        for i in range(1, self.length):
+            item = Item.Item(3 * i, 2 * i, i, i, f'{i}')
+            test_list.append(item)
         random.shuffle(test_list)
         test_list = Sort.insertion(test_list, 0, test_list.__len__() - 1)
-        self.assertEqual(sorted_list, test_list)
+        prev = -1
+        for item in test_list:
+            if item.get_rank() > prev:
+                prev = item.get_rank()
+                continue
+            else:
+                assert False
 
     def testMergeSort(self):
-        sorted_list = []
         test_list = []
-        for i in range(0, self.length):
-            sorted_list.append(i)
-        for i in range(0, self.length):
-            test_list.append(i)
+        for i in range(1, self.length):
+            item = Item.Item(3 * i, 2 * i, i, i, f'{i}')
+            test_list.append(item)
         random.shuffle(test_list)
         Sort.merge(test_list, 0, len(test_list))
-        self.assertEqual(sorted_list, test_list)
+        prev = -1
+        for item in test_list:
+            if item.get_rank() > prev:
+                prev = item.get_rank()
+                continue
+            else:
+                assert False
 
     def testTimSort(self):
-        sorted_list = []
         test_list = []
-        for i in range(0, self.length):
-            sorted_list.append(i)
-        for i in range(0, self.length):
-            test_list.append(i)
+        for i in range(1, self.length):
+            item = Item.Item(3 * i, 2 * i, i, i, f'{i}')
+            test_list.append(item)
         random.shuffle(test_list)
         Sort.tim_sort(test_list)
-        self.assertEqual(sorted_list, test_list)
+        prev = -1
+        for item in test_list:
+            if item.get_rank() > prev:
+                prev = item.get_rank()
+                continue
+            else:
+                assert False
 
     def tearDown(self) -> None:
         del self.container
