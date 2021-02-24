@@ -1,4 +1,4 @@
-from lib import Item
+from src.lib import Item
 
 
 MIN_MERGE = 32

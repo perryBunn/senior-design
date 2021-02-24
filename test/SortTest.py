@@ -3,8 +3,7 @@ import random
 import unittest
 import src.Sort as Sort
 import src.lib.Item as Item
-
-from lib.Container import Container
+import src.lib.Container as Container
 
 
 class SortTest(unittest.TestCase):
