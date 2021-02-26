@@ -66,7 +66,7 @@ class Container:
     reserved_volume = 0
     available_volume = -1
     item = None
-    children = []
+    children = [None]
 
     def __init__(self, x, y, z, length, width, height, item: Item = None):
         self.x = x
@@ -82,6 +82,7 @@ class Container:
         self.available_volume = self.volume - self.reserved_volume
         if item is not None:
             self.item = item
+        self.children = []
 
     def update_reserved_space(self, length: int = None, width: int = None, height: int = None,
                               size: [int, int, int] = None) -> bool:
@@ -151,6 +152,7 @@ class Container:
                 else:
                     self.add_void(self.x, self.y + 1, self.z, self.item.get_length(), available_width, self.item.get_height())
 
+                # New container in Z dimension
                 if available_height >= smallest_possible_fit[2]:
                     self.add_container(self.x, self.y, self.z + 1, self.length, self.width, available_height)
                 else:
@@ -173,6 +175,7 @@ class Container:
                 else:
                     self.add_void(self.x, self.y + 1, self.z, item.get_length(), available_width, item.get_height())
 
+                # New container in Z dimension
                 if available_height >= smallest_possible_fit[2]:
                     self.add_container(self.x, self.y, self.z + 1, self.length, self.width, available_height)
                 else:

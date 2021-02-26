@@ -74,12 +74,23 @@ class Item:
     def get_rank(self) -> int:
         return self.__rank
 
+    def __update_size(self):
+        self.__size = [self.__length, self.__width, self.__height]
+
     def rotate(self) -> bool:
         """ Switches the length and width of the item. Returns a bool if successful.
 
         :return: Success
         """
-        raise NotImplementedError
+        old_size = self.__size
+        temp = self.__width
+        self.__width = self.__length
+        self.__length = temp
+        self.__update_size()
+
+        if old_size == self.__size:
+            return False
+        return True
 
     def __str__(self):
         return f"Dimensions: {self.__size} Volume: {self.__volume} Mass: {self.__mass} Serial: {self.__serial_number}" \
