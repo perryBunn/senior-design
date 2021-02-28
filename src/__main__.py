@@ -1,5 +1,4 @@
 import argparse
-import GUI
 import Ingest
 import logging
 import pandas as pd
@@ -41,7 +40,7 @@ def main():
     if not c.nogui:
         # Start GUI
         logging.debug("Starting GUI...")
-        GUI.start()
+        # GUI.start()
     else:
         logging.debug("GUI not started...")
     if len(c.ingest) > 0:
@@ -50,8 +49,9 @@ def main():
         items = Sort.item_sort(items)
         print(items[0])
         print(items[len(items) - 1])
-        container = Container.Container(0, 0, 0, 10000, 10000, 10000)
-        palletize.palletize(items, container)
+        container = Container.Container(0, 0, 0, 5000, 5000, 2000)
+        shipment = palletize.palletize(items, container)
+        print(shipment)
 
 
 if __name__ == '__main__':

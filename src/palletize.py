@@ -1,11 +1,11 @@
 from src.lib.Container import Container
 from src.lib.Item import Item
 from src.lib.Void import Void
-import queue
+from collections import deque
 import logging
 
 
-def palletize(items: list, containerTemplate: Container) -> list[queue]:
+def palletize(items: list, containerTemplate: Container) -> list:
     """ Takes in a list and a container object, will return a list of item queues. Will iterate through the item list
         and create queues of items to be packed. Once the first container is full it will create a new pallet.
 
@@ -15,13 +15,13 @@ def palletize(items: list, containerTemplate: Container) -> list[queue]:
         put in. If there are more containers that need to be created it will be copies of this object.
 
     Return:
-    pallets: list[queue] - List of item queues.
+    pallets: list[deque] - List of item queues.
     """
 
-    available_spaces = queue.Queue()
+    available_spaces = []
     pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z, containerTemplate.length,
                        containerTemplate.width, containerTemplate.height)
-    available_spaces.put(pallet)
+    available_spaces.append(pallet)
     available_space_size = 1
     item_pos = 0
     shipment = []
@@ -29,14 +29,14 @@ def palletize(items: list, containerTemplate: Container) -> list[queue]:
     while len(items) > 0:
         if available_space_size == 0:
             logging.info("Adding full pallet to shipment")
-            shipment.append(pallet)
+            shipment.append(extract(pallet))
             logging.info("Creating new pallet")
             pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z, containerTemplate.length,
                                containerTemplate.width, containerTemplate.height)
             continue
         else:
             # Find most efficient orientation
-            cur_container = available_spaces.get()  # <-- this gets the head of the queue
+            cur_container = available_spaces.pop()  # <-- this gets the head of the queue
             cur_item = orient(items.pop(item_pos), cur_container)
             available_space_size -= 1
             cur_container.add_item(cur_item)
@@ -44,7 +44,7 @@ def palletize(items: list, containerTemplate: Container) -> list[queue]:
             # Get new sub-containers and add to available_spaces
             for con in cur_container.children:
                 if con.__class__.__name__ != "Void":
-                    available_spaces.put(con)
+                    available_spaces.append(con)
                     available_space_size += 1
 
             logging.debug(cur_container)
@@ -54,7 +54,8 @@ def palletize(items: list, containerTemplate: Container) -> list[queue]:
         logging.debug(available_spaces)
     shipment.append(pallet)
     logging.debug("Items remaining: " + str(len(items)))
-    logging.debug("Shipment size: " + str(available_space_size))
+    logging.debug("Shipment size: " + str(len(shipment)))
+
     return shipment
 
 
@@ -107,6 +108,43 @@ def orient(item: Item, container: Container) -> Item:
         return copy
     else:
         # they have the same area, probably a square item
-        # I dont think this well ever happen...
+        # I dont think this well ever happen... Unless the container is square.
         logging.info("The remaining areas for portrait and landscape were the same. Returning the original item...")
         return item
+
+
+def extract(pallet: Container):
+    """ Will iterate through the container and add the items to the queue based on the coordinates of the package. It
+        Needs to recurse through all of the packages and then based on those
+
+    Z is the most important as the lower the Z the item must be packed first.
+
+    :param pallet:
+    :return:
+    """
+    items = []
+    # recurse through pallet
+    items = extract_rec(pallet)
+    print("Items: ", items)
+    # Sort items
+    items.sort(key=lambda Container: Container.z)
+    print(items[0].z, items[len(items) - 1].z)
+    for i in items:
+        print(i.x, i.y, i.z, i.item)
+    return items
+
+
+def extract_rec(pallet: Container):
+    items = [pallet]
+    if len(pallet.children) != 0:
+        for child in pallet.children:
+            if child.__class__.__name__ != "Void":
+                temp = extract_rec(child)
+                if type(temp) is list:
+                    for i in temp:
+                        items.append(i)
+                else:
+                    items.append(temp)
+    else:
+        return pallet
+    return items

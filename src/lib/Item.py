@@ -48,7 +48,7 @@ class Item:
         self.__volume = self.__length * self.__width * self.__height
         self.__mass = massIn
         self.__serial_number = serial_numberIn
-        self.__rank = self.__volume * self.__mass
+        self.__rank = (self.__volume * self.__mass) / 1214162400000
 
     def get_length(self) -> int:
         return self.__length
