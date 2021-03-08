@@ -31,8 +31,11 @@ def palletize(items: list, containerTemplate: Container) -> list:
             logging.info("Adding full pallet to shipment")
             shipment.append(extract(pallet))
             logging.info("Creating new pallet")
+            pallet = None
             pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z, containerTemplate.length,
                                containerTemplate.width, containerTemplate.height)
+            available_spaces.append(pallet)
+            available_space_size += 1
             continue
         else:
             # Find most efficient orientation
@@ -51,8 +54,9 @@ def palletize(items: list, containerTemplate: Container) -> list:
             logging.debug(cur_container.item)
             logging.debug(available_space_size)
         # sort queue
+        sort_spaces(available_spaces)
         logging.debug(available_spaces)
-    shipment.append(pallet)
+    shipment.append(extract(pallet))
     logging.debug("Items remaining: " + str(len(items)))
     logging.debug("Shipment size: " + str(len(shipment)))
 
@@ -122,15 +126,17 @@ def extract(pallet: Container):
     :param pallet:
     :return:
     """
+    print("Entering extract...")
     items = []
     # recurse through pallet
     items = extract_rec(pallet)
     print("Items: ", items)
     # Sort items
-    items.sort(key=lambda Container: Container.z)
+    sorted(items, key=lambda x: x.z)
     print(items[0].z, items[len(items) - 1].z)
     for i in items:
         print(i.x, i.y, i.z, i.item)
+    print("Exiting extract...")
     return items
 
 
@@ -145,6 +151,36 @@ def extract_rec(pallet: Container):
                         items.append(i)
                 else:
                     items.append(temp)
-    else:
-        return pallet
     return items
+
+
+def sort_spaces(spaces: [Container]) -> list:
+    """ Sorts the spaces based on level and available volume.
+
+    Iterates through the list and first separates the spaces based on their Z values. then for each Z level sorts for
+    most volume first.
+
+    :param spaces:
+    :return:
+    """
+    print("Entering sort_spaces...")
+    levels: list[list[Container]] = [[]]
+    for space in spaces:
+        if space.z >= levels.__len__():
+            while space.z >= levels.__len__():
+                levels.append([])
+            levels[space.z].append(space)
+        else:
+            levels[space.z].append(space)
+
+    for level in levels:
+        print("before: ", level)
+        sorted(level, key=lambda x: x.volume)
+        print("After: ", level)
+
+    result: list = []
+    for level in levels:
+        for container in level:
+            result.append(container)
+    print("Exiting sort_spaces...")
+    return result

@@ -49,9 +49,13 @@ def main():
         items = Sort.item_sort(items)
         print(items[0])
         print(items[len(items) - 1])
-        container = Container.Container(0, 0, 0, 5000, 5000, 2000)
+        container = Container.Container(0, 0, 0, 2000, 3000, 2000)
         shipment = palletize.palletize(items, container)
         print(shipment)
+        for pallet in shipment:
+            print("Pallet: ")
+            for i in pallet:
+                print(i.x, i.y, i.z, i.item)
 
 
 if __name__ == '__main__':
