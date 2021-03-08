@@ -5,6 +5,7 @@ import pandas as pd
 from lib import Item, Container
 import Sort
 import palletize
+import time
 
 
 def init(data) -> list:
@@ -22,7 +23,8 @@ class Namespace:
 
 
 def main():
-    logging.basicConfig(filename='../logs/debug.log', level=logging.DEBUG, encoding='utf-8',
+    time_str = time.strftime("%Y-%m-%d_%H-%M,%S")
+    logging.basicConfig(filename=f'../logs/{time_str}_debug.log', level=logging.DEBUG, encoding='utf-8',
                         format='%(asctime)s %(levelname)s: %(message)s')
     logging.debug("Debug")
     logging.info("Info")
