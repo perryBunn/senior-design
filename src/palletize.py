@@ -175,7 +175,7 @@ def sort_spaces(spaces: [Container]) -> list:
 
     for level in levels:
         print("before: ", level)
-        sorted(level, key=lambda x: x.volume)
+        sorted(level, key=lambda x: x.z)
         print("After: ", level)
 
     result: list = []

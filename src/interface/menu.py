@@ -2,10 +2,14 @@ import sys
 import random
 from PySide6 import QtCore, QtWidgets, QtGui
 
+from interface import gui
+
 
 class Menu(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
+
+        self.w = gui.Gui()
 
         self.pack_button = QtWidgets.QPushButton("Pack!")
         self.config_button = QtWidgets.QPushButton("Config")
@@ -24,7 +28,10 @@ class Menu(QtWidgets.QWidget):
     @QtCore.Slot()
     def pack(self):
         print("pack")
-        pass
+        if self.w.isVisible():
+            pass
+        else:
+            self.w.show()
 
     @QtCore.Slot()
     def list(self):
@@ -37,7 +44,7 @@ class Menu(QtWidgets.QWidget):
         pass
 
 
-if __name__ == "__main__":
+def start():
     app = QtWidgets.QApplication([])
 
     widget = Menu()
@@ -46,3 +53,7 @@ if __name__ == "__main__":
     widget.show()
 
     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    start()

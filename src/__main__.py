@@ -2,6 +2,8 @@ import argparse
 import Ingest
 import logging
 import pandas as pd
+
+from interface import menu
 from lib import Item, Container
 import Sort
 import palletize
@@ -43,6 +45,7 @@ def main():
         # Start GUI
         logging.debug("Starting GUI...")
         # GUI.start()
+        menu.start()
     else:
         logging.debug("GUI not started...")
     if len(c.ingest) > 0:
