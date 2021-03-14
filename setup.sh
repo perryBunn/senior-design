@@ -1,6 +1,5 @@
 pip --version | read message
 
-
 if [[ $1 == "dev" ]]; then
 	echo "******************************"
 	echo "*            DEV             *"
@@ -9,7 +8,6 @@ if [[ $1 == "dev" ]]; then
 else
 	file="./requirements/prod.txt"
 fi
-
 
 match="^.*python 3\.[1-9].*"
 if [[ $message == *$match* ]]; then
