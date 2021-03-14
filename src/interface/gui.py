@@ -1,5 +1,7 @@
 import sys
 import random
+
+import PySide6
 from PySide6 import QtCore, QtWidgets, QtGui
 
 import Ingest
@@ -23,24 +25,31 @@ class Gui(QtWidgets.QWidget):
         super().__init__()
 
         self.hello = ["Hallo Welt", "Hei maailma", "Hola Mundo", "Привет мир"]
-        self.tableWidget = QtWidgets.QTableWidget(10, 1, self)
-        self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         self.button = QtWidgets.QPushButton("Click me!")
         self.update_table_button = QtWidgets.QPushButton("Update Table")
         self.clear_table_button = QtWidgets.QPushButton("Clear Table")
         self.text = QtWidgets.QLabel("Hello World", alignment=QtCore.Qt.AlignCenter)
 
+        self.splitter = QtWidgets.QSplitter()
+        self.tableWidget = QtWidgets.QTableWidget(10, 1, self)
+        self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        self.splitter.addWidget(self.tableWidget)
+
         self.layout = QtWidgets.QGridLayout(self)
         self.layout.setGeometry(QtCore.QRect(0, 0, 3, 3))
         self.layout.addWidget(self.text, 1, 0)
         self.layout.addWidget(self.button, 1, 1)
-        self.layout.addWidget(self.tableWidget, 2, 1)
+        self.layout.addWidget(self.splitter, 2, 1, 1, 2)
         self.layout.addWidget(self.update_table_button, 3, 1)
         self.layout.addWidget(self.clear_table_button, 3, 0)
 
         self.button.clicked.connect(self.magic)
         self.update_table_button.clicked.connect(self.update_table)
         self.clear_table_button.clicked.connect(self.clear_table)
+
+    def showEvent(self, event:PySide6.QtGui.QShowEvent) -> None:
+        self.load_list()
+        self.update_table()
 
     def load_list(self):
         self.data = Ingest.ingest("../", 'IngestTemplate.xlsx')
