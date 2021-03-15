@@ -1,7 +1,9 @@
 import sys
 
+import PySide2
 import numpy as np
 from itertools import product, combinations
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import axes3d
@@ -12,17 +14,30 @@ from PySide2.QtWidgets import (QAction, QApplication, QComboBox, QHBoxLayout,
                                QTableWidget, QTableWidgetItem, QVBoxLayout,
                                QWidget)
 
+import Ingest
+import Sort
+import palletize
 from lib.Container import Container
+from lib.Item import Item
 
 """This example implements the interaction between Qt Widgets and a 3D
 matplotlib plot"""
+
+
+def init(data) -> list:
+    items = []
+    for item in data.iterrows():
+        obj = Item(item[1]["Length"], item[1]["Width"], item[1]["Height"], item[1]["Weight"],
+                        item[1]["Code/Serial Number"])
+        items.append(obj)
+    return items
 
 
 class ApplicationWindow(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
 
-        self.container = Container(0, 0, 0, 1, 1, 1)
+        self.container = Container(0, 0, 0, 100, 10, 5)
 
         self.column_names = ["Column A", "Column B", "Column C"]
 
@@ -100,6 +115,7 @@ class ApplicationWindow(QMainWindow):
         self.slider_azim.setValue(30)
         self.slider_elev.setValue(30)
         self.fig.canvas.mpl_connect("button_release_event", self.on_click)
+        self.load_list()
 
     # Matplotlib slot method
     def on_click(self, event):
@@ -181,28 +197,46 @@ class ApplicationWindow(QMainWindow):
 
         self.canvas.draw()
 
-    def plot_dyn_cube(self, item: Container):
+    def plot_dyn_cube(self, shipment: list):
         self._ax.cla()
-        points = np.array([
-            [item.x, item.y, item.z],  # Origin
-            [item.x+item.length, item.y, item.z],
-            [item.x, item.y+item.width, item.z],
-            [item.x+item.length, item.y+item.width, item.z],
-            [item.x, item.y, item.z+item.height],  # Origin
-            [item.x + item.length, item.y, item.z+item.height],
-            [item.x, item.y + item.width, item.z+item.height],
-            [item.x + item.length, item.y + item.width, item.z+item.height],
-        ])
-        r = [0, 1]
-        X, Y = np.meshgrid(r, r)
-        print(X)
-        print(Y)
-        self._ax.plot_surface([X's], [Y's], [Z's], alpha=0.5)
-        self._ax.scatter3D(points[:, 0], points[:, 1], points[:, 2])
+        for item in shipment:
+            Z = np.array([
+                [item.x, item.y, item.z],                                           # 0
+                [item.x+item.length, item.y, item.z],                               # 1
+                [item.x, item.y+item.width, item.z],                                # 2
+                [item.x+item.length, item.y+item.width, item.z],                    # 3
+                [item.x, item.y, item.z+item.height],                               # 4
+                [item.x + item.length, item.y, item.z+item.height],                 # 5
+                [item.x, item.y + item.width, item.z+item.height],                  # 6
+                [item.x + item.length, item.y + item.width, item.z+item.height],    # 7
+            ])
+            verts = [
+                [Z[0], Z[1], Z[3], Z[2]],  # Top
+                [Z[4], Z[5], Z[7], Z[6]],  # Bottom
+                [Z[2], Z[3], Z[7], Z[6]],  # North
+                [Z[0], Z[1], Z[5], Z[4]],  # South
+                [Z[0], Z[2], Z[6], Z[4]],  # East
+                [Z[1], Z[3], Z[7], Z[5]]   # West
+            ]
+            self._ax.scatter3D(Z[:, 0], Z[:, 1], Z[:, 2])
+            self._ax.add_collection3d(Poly3DCollection(verts, facecolors='cyan', linewidths=1, edgecolors='b', alpha=.2))
+
         self._ax.set_xlabel('X')
         self._ax.set_ylabel('Y')
         self._ax.set_zlabel('Z')
         self.canvas.draw()
+
+
+    def load_list(self):
+        self.data = Ingest.ingest("../", 'IngestTemplate.xlsx')
+        self.items = init(self.data)
+        self.items = Sort.item_sort(self.items)
+        print(self.items[0])
+        print(self.items[len(self.items) - 1])
+        self.containerTemplate = Container(0, 0, 0, 2000, 3000, 2000)
+        self.shipment = palletize.palletize(self.items, self.containerTemplate)
+        self.shipment = self.shipment[0]
+        print(self.shipment)
 
     # Slots
 
@@ -219,7 +253,7 @@ class ApplicationWindow(QMainWindow):
         elif text == "Cube":
             self.plot_cube()
         elif text == "Dyn Cube":
-            self.plot_dyn_cube(self.container)
+            self.plot_dyn_cube(self.shipment)
 
     @Slot()
     def rotate_azim(self, value):
