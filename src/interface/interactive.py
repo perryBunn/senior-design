@@ -12,6 +12,7 @@ from PySide2.QtWidgets import (QAction, QApplication, QComboBox, QHBoxLayout,
                                QTableWidget, QTableWidgetItem, QVBoxLayout,
                                QWidget)
 
+from lib.Container import Container
 
 """This example implements the interaction between Qt Widgets and a 3D
 matplotlib plot"""
@@ -20,6 +21,8 @@ matplotlib plot"""
 class ApplicationWindow(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
+
+        self.container = Container(0, 0, 0, 1, 1, 1)
 
         self.column_names = ["Column A", "Column B", "Column C"]
 
@@ -63,7 +66,7 @@ class ApplicationWindow(QMainWindow):
 
         # ComboBox (Right)
         self.combo = QComboBox()
-        self.combo.addItems(["Wired", "Surface", "Triangular Surface", "Sphere", "Cube"])
+        self.combo.addItems(["Wired", "Surface", "Triangular Surface", "Sphere", "Cube", "Dyn Cube"])
 
         # Right layout
         rlayout = QVBoxLayout()
@@ -170,11 +173,35 @@ class ApplicationWindow(QMainWindow):
         self.canvas.draw()
 
     def plot_cube(self):
+        self._ax.cla()
         r = [-10, 10]
         for s, e in combinations(np.array(list(product(r, r, r))), 2):
             if np.sum(np.abs(s - e)) == r[1] - r[0]:
                 self._ax.plot3D(*zip(s, e), color="b")
 
+        self.canvas.draw()
+
+    def plot_dyn_cube(self, item: Container):
+        self._ax.cla()
+        points = np.array([
+            [item.x, item.y, item.z],  # Origin
+            [item.x+item.length, item.y, item.z],
+            [item.x, item.y+item.width, item.z],
+            [item.x+item.length, item.y+item.width, item.z],
+            [item.x, item.y, item.z+item.height],  # Origin
+            [item.x + item.length, item.y, item.z+item.height],
+            [item.x, item.y + item.width, item.z+item.height],
+            [item.x + item.length, item.y + item.width, item.z+item.height],
+        ])
+        r = [0, 1]
+        X, Y = np.meshgrid(r, r)
+        print(X)
+        print(Y)
+        self._ax.plot_surface([X's], [Y's], [Z's], alpha=0.5)
+        self._ax.scatter3D(points[:, 0], points[:, 1], points[:, 2])
+        self._ax.set_xlabel('X')
+        self._ax.set_ylabel('Y')
+        self._ax.set_zlabel('Z')
         self.canvas.draw()
 
     # Slots
@@ -191,6 +218,8 @@ class ApplicationWindow(QMainWindow):
             self.plot_sphere()
         elif text == "Cube":
             self.plot_cube()
+        elif text == "Dyn Cube":
+            self.plot_dyn_cube(self.container)
 
     @Slot()
     def rotate_azim(self, value):
