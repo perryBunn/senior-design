@@ -83,7 +83,12 @@ class ApplicationWindow(QMainWindow):
 
         # ComboBox (Right)
         self.combo = QComboBox()
-        self.combo.addItems(["Wired", "Surface", "Triangular Surface", "Sphere", "Cube", "Dyn Cube"])
+        self.load_list()
+        # items = ["Wired", "Surface", "Triangular Surface", "Sphere", "Cube"]
+        items = []
+        for i in range(len(self.shipment)):
+            items.append(f"Crate {1+i}")
+        self.combo.addItems(items)
 
         # Right layout
         rlayout = QVBoxLayout()
@@ -112,12 +117,11 @@ class ApplicationWindow(QMainWindow):
         self.slider_elev.valueChanged.connect(self.rotate_elev)
 
         # Initial setup
-        self.plot_wire()
+        self.plot_dyn_cube(self.shipment, 0)
         self._ax.view_init(30, 30)
         self.slider_azim.setValue(30)
         self.slider_elev.setValue(30)
         #self.fig.canvas.mpl_connect("button_release_event", self.on_click)
-        self.load_list()
 
     # Matplotlib slot method
     def on_click(self, event):
@@ -153,6 +157,9 @@ class ApplicationWindow(QMainWindow):
         self.set_table_data(data[0], data[1], data[2])
 
     def set_canvas_table_configuration_containers(self, row_count, data):
+        self.fig.set_canvas(self.canvas)
+        self._ax = self.canvas.figure.add_subplot(projection="3d")
+
         self.table.setRowCount(row_count)
         self.table.setColumnCount(1)
         self.table.setHorizontalHeaderLabels(self.column_names)
@@ -216,9 +223,11 @@ class ApplicationWindow(QMainWindow):
         sha.update(item_serial.encode())
         return sha.hexdigest()[:3]
 
-    def plot_dyn_cube(self, shipment: list):
-        self._ax.cla()
-        for item in shipment:
+    def plot_dyn_cube(self, shipment: list, index: int):
+        if hasattr(self, "_ax"):
+            self._ax.cla()
+        self.set_canvas_table_configuration_containers(len(self.shipment), self.shipment[index])
+        for item in shipment[index]:
             print(item)
             if item.item == None:
                 continue
@@ -248,7 +257,6 @@ class ApplicationWindow(QMainWindow):
         self._ax.set_xlabel('X')
         self._ax.set_ylabel('Y')
         self._ax.set_zlabel('Z')
-        self.set_canvas_table_configuration_containers(len(self.shipment), self.shipment)
         self.canvas.draw()
 
     def load_list(self):
@@ -259,7 +267,6 @@ class ApplicationWindow(QMainWindow):
         print(self.items[len(self.items) - 1])
         self.containerTemplate = Container(0, 0, 0, 2000, 3000, 2000)
         self.shipment = palletize.palletize(self.items, self.containerTemplate)
-        self.shipment = self.shipment[len(self.shipment) -1]
         print(self.shipment)
 
     # Slots
@@ -276,8 +283,9 @@ class ApplicationWindow(QMainWindow):
             self.plot_sphere()
         elif text == "Cube":
             self.plot_cube()
-        elif text == "Dyn Cube":
-            self.plot_dyn_cube(self.shipment)
+        for i in range(len(self.shipment)):
+            if text == f"Crate {1 + i}":
+                self.plot_dyn_cube(self.shipment, i)
 
     @Slot()
     def rotate_azim(self, value):
