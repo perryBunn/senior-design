@@ -20,6 +20,8 @@ import palletize
 from lib.Container import Container
 from lib.Item import Item
 
+import hashlib
+
 """This example implements the interaction between Qt Widgets and a 3D
 matplotlib plot"""
 
@@ -114,7 +116,7 @@ class ApplicationWindow(QMainWindow):
         self._ax.view_init(30, 30)
         self.slider_azim.setValue(30)
         self.slider_elev.setValue(30)
-        self.fig.canvas.mpl_connect("button_release_event", self.on_click)
+        #self.fig.canvas.mpl_connect("button_release_event", self.on_click)
         self.load_list()
 
     # Matplotlib slot method
@@ -131,6 +133,12 @@ class ApplicationWindow(QMainWindow):
             self.table.setItem(i, 1, QTableWidgetItem("{:.2f}".format(Y[i])))
             self.table.setItem(i, 2, QTableWidgetItem("{:.2f}".format(Z[i])))
 
+    def set_table_data_container(self, X):
+        for i in range(len(X)):
+            if X[i].item == None:
+                continue
+            self.table.setItem(i, 0, QTableWidgetItem(X[i].item.get_serial()))
+
     def set_canvas_table_configuration(self, row_count, data):
         self.fig.set_canvas(self.canvas)
         self._ax = self.canvas.figure.add_subplot(projection="3d")
@@ -143,6 +151,12 @@ class ApplicationWindow(QMainWindow):
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(self.column_names)
         self.set_table_data(data[0], data[1], data[2])
+
+    def set_canvas_table_configuration_containers(self, row_count, data):
+        self.table.setRowCount(row_count)
+        self.table.setColumnCount(1)
+        self.table.setHorizontalHeaderLabels(self.column_names)
+        self.set_table_data_container(data)
 
     # Plot methods
 
@@ -197,18 +211,26 @@ class ApplicationWindow(QMainWindow):
 
         self.canvas.draw()
 
+    def serial_hash(self, item_serial: str) -> str:
+        sha = hashlib.sha256()
+        sha.update(item_serial.encode())
+        return sha.hexdigest()[:3]
+
     def plot_dyn_cube(self, shipment: list):
         self._ax.cla()
         for item in shipment:
+            print(item)
+            if item.item == None:
+                continue
             Z = np.array([
-                [item.x, item.y, item.z],                                           # 0
-                [item.x+item.length, item.y, item.z],                               # 1
-                [item.x, item.y+item.width, item.z],                                # 2
-                [item.x+item.length, item.y+item.width, item.z],                    # 3
-                [item.x, item.y, item.z+item.height],                               # 4
-                [item.x + item.length, item.y, item.z+item.height],                 # 5
-                [item.x, item.y + item.width, item.z+item.height],                  # 6
-                [item.x + item.length, item.y + item.width, item.z+item.height],    # 7
+                [item.x, item.y, item.z],                                                                           # 0
+                [item.x+item.item.get_length(), item.y, item.z],                                                    # 1
+                [item.x, item.y+item.item.get_width(), item.z],                                                     # 2
+                [item.x+item.item.get_length(), item.y+item.item.get_width(), item.z],                              # 3
+                [item.x, item.y, item.z+item.item.get_height()],                                                    # 4
+                [item.x + item.item.get_length(), item.y, item.z+item.item.get_height()],                           # 5
+                [item.x, item.y + item.item.get_width(), item.z+item.item.get_height()],                            # 6
+                [item.x + item.item.get_length(), item.y + item.item.get_width(), item.z+item.item.get_height()],   # 7
             ])
             verts = [
                 [Z[0], Z[1], Z[3], Z[2]],  # Top
@@ -219,13 +241,15 @@ class ApplicationWindow(QMainWindow):
                 [Z[1], Z[3], Z[7], Z[5]]   # West
             ]
             self._ax.scatter3D(Z[:, 0], Z[:, 1], Z[:, 2])
-            self._ax.add_collection3d(Poly3DCollection(verts, facecolors='cyan', linewidths=1, edgecolors='b', alpha=.2))
+            color = self.serial_hash(item.item.get_serial())
+            print(color)
+            self._ax.add_collection3d(Poly3DCollection(verts, facecolors=f'#{color}', linewidths=1, edgecolors='b', alpha=.4))
 
         self._ax.set_xlabel('X')
         self._ax.set_ylabel('Y')
         self._ax.set_zlabel('Z')
+        self.set_canvas_table_configuration_containers(len(self.shipment), self.shipment)
         self.canvas.draw()
-
 
     def load_list(self):
         self.data = Ingest.ingest("../", 'IngestTemplate.xlsx')
@@ -235,7 +259,7 @@ class ApplicationWindow(QMainWindow):
         print(self.items[len(self.items) - 1])
         self.containerTemplate = Container(0, 0, 0, 2000, 3000, 2000)
         self.shipment = palletize.palletize(self.items, self.containerTemplate)
-        self.shipment = self.shipment[0]
+        self.shipment = self.shipment[len(self.shipment) -1]
         print(self.shipment)
 
     # Slots

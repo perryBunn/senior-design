@@ -142,21 +142,21 @@ class Container:
 
                 # New container in the X dimension
                 if available_length >= smallest_possible_fit[0]:
-                    self.add_container(self.x + 1, self.y, self.z, available_length, self.width, self.item.get_height())
+                    self.add_container(self.x + self.item.get_length(), self.y, self.z, available_length, self.width, self.item.get_height())
                 else:
-                    self.add_void(self.x + 1, self.y, self.z, available_length, self.width, self.item.get_height())
+                    self.add_void(self.x + self.item.get_length(), self.y, self.z, available_length, self.width, self.item.get_height())
 
                 # New container in the Y dimension
                 if available_width >= smallest_possible_fit[1]:
-                    self.add_container(self.x, self.y + 1, self.z, self.item.get_length(), available_width, self.item.get_height())
+                    self.add_container(self.x, self.y + self.item.get_width(), self.z, self.item.get_length(), available_width, self.item.get_height())
                 else:
-                    self.add_void(self.x, self.y + 1, self.z, self.item.get_length(), available_width, self.item.get_height())
+                    self.add_void(self.x, self.y + self.item.get_width(), self.z, self.item.get_length(), available_width, self.item.get_height())
 
                 # New container in Z dimension
                 if available_height >= smallest_possible_fit[2]:
-                    self.add_container(self.x, self.y, self.z + 1, self.length, self.width, available_height)
+                    self.add_container(self.x, self.y, self.z + self.item.get_height(), self.length, self.width, available_height)
                 else:
-                    self.add_void(self.x, self.y, self.z + 1, self.length, self.width, available_height)
+                    self.add_void(self.x, self.y, self.z + self.item.get_height(), self.length, self.width, available_height)
             else:  # There is not an item in the container
                 available_length = self.length - item.get_length()
                 available_width = self.width - item.get_width()

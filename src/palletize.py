@@ -174,9 +174,7 @@ def sort_spaces(spaces: [Container]) -> list:
             levels[space.z].append(space)
 
     for level in levels:
-        print("before: ", level)
         sorted(level, key=lambda x: x.z)
-        print("After: ", level)
 
     result: list = []
     for level in levels:
