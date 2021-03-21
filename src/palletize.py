@@ -19,7 +19,7 @@ def palletize(items: list, containerTemplate: Container) -> list:
     """
 
     available_spaces = []
-    pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z, containerTemplate.length,
+    pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z, containerTemplate.logi_coord, containerTemplate.length,
                        containerTemplate.width, containerTemplate.height)
     available_spaces.append(pallet)
     available_space_size = 1
@@ -27,21 +27,47 @@ def palletize(items: list, containerTemplate: Container) -> list:
     shipment = []
     smallest_size = items[len(items) - 1].get_size()
     while len(items) > 0:
+        print("Num Items: ", len(items))
         if available_space_size == 0:
             logging.info("Adding full pallet to shipment")
+            logging.debug("Items remaining: " + str(len(items)))
+            logging.debug("Shipment size: " + str(len(shipment)))
             shipment.append(extract(pallet))
             logging.info("Creating new pallet")
             pallet = None
-            pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z, containerTemplate.length,
+            pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z, containerTemplate.logi_coord, containerTemplate.length,
                                containerTemplate.width, containerTemplate.height)
             available_spaces.append(pallet)
             available_space_size += 1
             continue
         else:
             # Find most efficient orientation
-            cur_container = available_spaces.pop()  # <-- this gets the head of the queue
+            cur_container = available_spaces.pop(0)  # <-- this gets the head of the queue
             cur_item = orient(items.pop(item_pos), cur_container)
             available_space_size -= 1
+            # Check if item fits in container
+            fit = cur_container.is_smaller(cur_item)
+            if not fit[0] and not fit[1] and not fit[2]:
+                print("Fit:", fit[0], fit[1], fit[2])
+                if available_space_size == 0:
+                    logging.debug("Items remaining: " + str(len(items)))
+                    logging.debug("Shipment size: " + str(len(shipment)))
+                    shipment.append(extract(pallet))
+                    logging.info("Creating new pallet")
+                    pallet = None
+                    pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z,
+                                       containerTemplate.logi_coord, containerTemplate.length,
+                                       containerTemplate.width, containerTemplate.height)
+                    available_spaces.append(pallet)
+                    available_space_size += 1
+                    continue
+
+                print("Current: ", cur_container, cur_item)
+                print("Len_items, item_pos: ", len(items), item_pos)
+                print("Available containers: ", available_space_size)
+                items.append(cur_item)
+                available_spaces.insert(1, cur_container)
+                continue
             cur_container.add_item(cur_item)
             cur_container.create_child(smallest_size)
             # Get new sub-containers and add to available_spaces
@@ -49,16 +75,17 @@ def palletize(items: list, containerTemplate: Container) -> list:
                 if con.__class__.__name__ != "Void":
                     available_spaces.append(con)
                     available_space_size += 1
+            item_pos = 0
 
-            logging.debug(cur_container)
-            logging.debug(cur_container.item)
-            logging.debug(available_space_size)
+            logging.debug("Container: ", cur_container)
+            logging.debug("Item: ", cur_container.item)
+            logging.debug("Avail_space: ", available_space_size)
         # sort queue
         sort_spaces(available_spaces)
         logging.debug(available_spaces)
-    shipment.append(extract(pallet))
     logging.debug("Items remaining: " + str(len(items)))
     logging.debug("Shipment size: " + str(len(shipment)))
+    shipment.append(extract(pallet))
 
     return shipment
 
@@ -96,11 +123,11 @@ def orient(item: Item, container: Container) -> Item:
         tiles_l[1] += 1
 
     # Compare
-    remain_por_x = container.length - (tiles_p[0]*item.get_length())
-    remain_por_y = container.width - (tiles_p[1]*item.get_width())
+    remain_por_x = container.length - ((tiles_p[0]-1)*item.get_length())
+    remain_por_y = container.width - ((tiles_p[1]-1)*item.get_width())
 
-    remain_lan_x = container.length - (tiles_l[0]*copy.get_length())
-    remain_lan_y = container.width - (tiles_l[1]*copy.get_width())
+    remain_lan_x = container.length - ((tiles_l[0]-1)*copy.get_length())
+    remain_lan_y = container.width - ((tiles_l[1]-1)*copy.get_width())
 
     remain_por_area = (remain_por_x*container.width) + (remain_por_y*container.length) - (remain_por_y*remain_por_x)
     remain_lan_area = (remain_lan_x * container.width) + (remain_lan_y * container.length) - \
@@ -126,17 +153,17 @@ def extract(pallet: Container):
     :param pallet:
     :return:
     """
-    print("Entering extract...")
+    # print("Entering extract...")
     items = []
     # recurse through pallet
     items = extract_rec(pallet)
-    print("Items: ", items)
+    # print("Items: ", items)
     # Sort items
     sorted(items, key=lambda x: x.z)
-    print(items[0].z, items[len(items) - 1].z)
-    for i in items:
-        print(i.x, i.y, i.z, i.item)
-    print("Exiting extract...")
+    # print(items[0].z, items[len(items) - 1].z)
+    # for i in items:
+    #     print(i.x, i.y, i.z, i.item)
+    # print("Exiting extract...")
     return items
 
 
@@ -163,15 +190,18 @@ def sort_spaces(spaces: [Container]) -> list:
     :param spaces:
     :return:
     """
+    # TODO: Need to implement logical coordinates for sorting. Currently if a container is on Z-600 then the loop will
+    #  create a list of length 600. Creating logical coordinates would allow the program to dramatically reduced the
+    #  iterations per sort.
     print("Entering sort_spaces...")
     levels: list[list[Container]] = [[]]
     for space in spaces:
-        if space.z >= levels.__len__():
-            while space.z >= levels.__len__():
+        if space.logi_z >= levels.__len__():
+            while space.logi_z >= levels.__len__():
                 levels.append([])
-            levels[space.z].append(space)
+            levels[space.logi_z].append(space)
         else:
-            levels[space.z].append(space)
+            levels[space.logi_z].append(space)
 
     for level in levels:
         sorted(level, key=lambda x: x.z)

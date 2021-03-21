@@ -38,8 +38,8 @@ def init(data) -> list:
 class ApplicationWindow(QMainWindow):
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent)
-
-        self.container = Container(0, 0, 0, 100, 10, 5)
+        logi = [0, 0, 0]
+        self.container = Container(0, 0, 0, logi, 100, 10, 5)
 
         self.column_names = ["Column A", "Column B", "Column C"]
 
@@ -265,7 +265,8 @@ class ApplicationWindow(QMainWindow):
         self.items = Sort.item_sort(self.items)
         print(self.items[0])
         print(self.items[len(self.items) - 1])
-        self.containerTemplate = Container(0, 0, 0, 2000, 3000, 2000)
+        logi = [0, 0, 0]
+        self.containerTemplate = Container(0, 0, 0, logi, 2500, 2500, 2000)
         self.shipment = palletize.palletize(self.items, self.containerTemplate)
         print(self.shipment)
 

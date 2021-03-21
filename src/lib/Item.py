@@ -33,34 +33,34 @@ class Item:
         Returns the serial_number of the item
     """
 
-    __length, __width, __height = -1, -1, -1
-    __size = [__length, __width, __height]
+    length, width, height = -1, -1, -1
+    size = [length, width, height]
     __volume = -1
     __mass = -1
     __serial_number = ""
     __rank = -1
 
     def __init__(self, lengthIn: int, widthIn: int, heightIn: int, massIn: int, serial_numberIn: str):
-        self.__length = lengthIn
-        self.__width = widthIn
-        self.__height = heightIn
-        self.__size = [self.__length, self.__width, self.__height]
-        self.__volume = self.__length * self.__width * self.__height
+        self.length = lengthIn
+        self.width = widthIn
+        self.height = heightIn
+        self.size = [self.length, self.width, self.height]
+        self.__volume = self.length * self.width * self.height
         self.__mass = massIn
         self.__serial_number = serial_numberIn
-        self.__rank = (self.__height * self.__mass)
+        self.__rank = (self.height * self.__mass)
 
     def get_length(self) -> int:
-        return self.__length
+        return self.length
 
     def get_width(self) -> int:
-        return self.__width
+        return self.width
 
     def get_height(self) -> int:
-        return self.__height
+        return self.height
 
     def get_size(self) -> [int, int, int]:
-        return self.__size
+        return self.size
 
     def get_volume(self) -> int:
         return self.__volume
@@ -75,23 +75,24 @@ class Item:
         return self.__rank
 
     def __update_size(self):
-        self.__size = [self.__length, self.__width, self.__height]
+        self.size = [self.length, self.width, self.height]
 
     def rotate(self) -> bool:
         """ Switches the length and width of the item. Returns a bool if successful.
 
         :return: Success
         """
-        old_size = self.__size
-        temp = self.__width
-        self.__width = self.__length
-        self.__length = temp
-        self.__update_size()
+        old_size = self.size
+        self.width, self.length = self.length, self.width
+        self.size = [self.length, self.width, self.height]
 
-        if old_size == self.__size:
-            return False
+        if old_size == self.size:
+            if self.width == self.length:
+                pass
+            else:
+                raise ValueError
         return True
 
     def __str__(self):
-        return f"Dimensions: {self.__size} Volume: {self.__volume} Mass: {self.__mass} Serial: {self.__serial_number}" \
+        return f"Dimensions: {self.size} Volume: {self.__volume} Mass: {self.__mass} Serial: {self.__serial_number}" \
                f" Rank: {self.__rank}"

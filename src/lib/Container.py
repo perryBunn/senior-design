@@ -1,3 +1,6 @@
+import logging
+import warnings
+
 from src.lib.Item import Item
 from src.lib.Void import Void
 from src.lib.ItemOverwriteError import ItemOverwriteError
@@ -67,12 +70,19 @@ class Container:
     available_volume = -1
     item = None
     children = [None]
+    logi_x, logi_y, logi_z = 0, 0, 0
+    logi_coord = [logi_x, logi_y, logi_z]
 
-    def __init__(self, x, y, z, length, width, height, item: Item = None):
+    def __init__(self, x: int, y: int, z: int, logi_coords: [int, int, int], length: int, width: int, height: int,
+                 item: Item = None):
         self.x = x
         self.y = y
         self.z = z
         self.position = [self.x, self.y, self.z]
+        self.logi_x = logi_coords[0]
+        self.logi_y = logi_coords[1]
+        self.logi_z = logi_coords[2]
+        self.logi_coord = logi_coords
         self.length = length
         self.width = width
         self.height = height
@@ -84,6 +94,7 @@ class Container:
             self.item = item
         self.children = []
 
+    @DeprecationWarning
     def update_reserved_space(self, length: int = None, width: int = None, height: int = None,
                               size: [int, int, int] = None) -> bool:
         """
@@ -95,6 +106,7 @@ class Container:
         :param size: List of side lengths to be added to the reserved dimensions
         :return: Returns if the operation was successful
         """
+        warnings.warn("update_reserved_space is deprecated.", DeprecationWarning)
         status = False
         if length is not None:
             if not self.reserved_length + length > self.length:
@@ -140,24 +152,29 @@ class Container:
                 available_width = self.width - self.item.get_width()
                 available_height = self.height - self.item.get_height()
 
-                # New container in the X dimension
+                # New container +X of the item
                 if available_length >= smallest_possible_fit[0]:
-                    self.add_container(self.x + self.item.get_length(), self.y, self.z, available_length, self.width, self.item.get_height())
+                    logi_coords = [self.logi_coord[0] + 1, self.logi_coord[1], self.logi_coord[2]]
+                    self.add_container(self.x + self.item.get_length(), self.y, self.z, logi_coords, available_length, self.width, self.height)
                 else:
-                    self.add_void(self.x + self.item.get_length(), self.y, self.z, available_length, self.width, self.item.get_height())
+                    self.add_void(self.x + self.item.get_length(), self.y, self.z, available_length, self.width, self.height)
 
-                # New container in the Y dimension
+                # New container +Y of the item
                 if available_width >= smallest_possible_fit[1]:
-                    self.add_container(self.x, self.y + self.item.get_width(), self.z, self.item.get_length(), available_width, self.item.get_height())
+                    logi_coords = [self.logi_coord[0], self.logi_coord[1] + 1, self.logi_coord[2]]
+                    self.add_container(self.x, self.y + self.item.get_width(), self.z, logi_coords, self.item.get_length(), available_width, self.height)
                 else:
-                    self.add_void(self.x, self.y + self.item.get_width(), self.z, self.item.get_length(), available_width, self.item.get_height())
+                    self.add_void(self.x, self.y + self.item.get_width(), self.z, self.item.get_length(), available_width, self.height)
 
-                # New container in Z dimension
+                # New container above the item
                 if available_height >= smallest_possible_fit[2]:
-                    self.add_container(self.x, self.y, self.z + self.item.get_height(), self.length, self.width, available_height)
+                    logi_coords = [self.logi_coord[0], self.logi_coord[1], self.logi_coord[2] + 1]
+                    self.add_container(self.x, self.y, self.z + self.item.get_height(), logi_coords, self.item.get_length(), self.item.get_width(), available_height)
                 else:
-                    self.add_void(self.x, self.y, self.z + self.item.get_height(), self.length, self.width, available_height)
+                    self.add_void(self.x, self.y, self.z + self.item.get_height(), self.item.get_length(), self.item.get_width(), available_height)
             else:  # There is not an item in the container
+                warnings.warn("Containers should already have items.", DeprecationWarning)
+                logging.warning("This section of create_child() is not updated")
                 available_length = self.length - item.get_length()
                 available_width = self.width - item.get_width()
                 available_height = self.height - item.get_height()
@@ -187,10 +204,10 @@ class Container:
         else:
             self.item = item
 
-    def add_container(self, x, y, z, length, width, height):
+    def add_container(self, x, y, z, logi_coords, length, width, height):
         # TODO: What if new child container is at the same position as the parent?
         # TODO: What if the parent container already has 3 children?
-        cont = Container(x, y, z, length, width, height)
+        cont = Container(x, y, z, logi_coords, length, width, height)
         self.children.append(cont)
 
     def add_void(self, x, y, z, length, width, height):
