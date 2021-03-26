@@ -3,6 +3,7 @@ from src.lib.Item import Item
 from src.lib.Void import Void
 from collections import deque
 import logging
+import math
 
 
 def palletize(items: list, containerTemplate: Container) -> list:
@@ -26,9 +27,13 @@ def palletize(items: list, containerTemplate: Container) -> list:
     item_pos = 0
     shipment = []
     smallest_size = items[len(items) - 1].get_size()
+    smallest_flag = False
     while len(items) > 0:
-        print("Num Items: ", len(items))
-        if available_space_size == 0:
+        print("Num Items: ", len(items), "Item Pos: ", item_pos)
+        if item_pos >= len(items):
+            smallest_flag = True
+
+        if available_space_size == 0 or smallest_flag:
             logging.info("Adding full pallet to shipment")
             logging.debug("Items remaining: " + str(len(items)))
             logging.debug("Shipment size: " + str(len(shipment)))
@@ -39,34 +44,42 @@ def palletize(items: list, containerTemplate: Container) -> list:
                                containerTemplate.width, containerTemplate.height)
             available_spaces.append(pallet)
             available_space_size += 1
+            if smallest_flag:
+                available_spaces.pop(0)
+                available_space_size -= 1
+                smallest_flag = False
+                item_pos = 0
+                if len(items) != 0:
+                    smallest_size = update_smallest(items)
             continue
         else:
             # Find most efficient orientation
             cur_container = available_spaces.pop(0)  # <-- this gets the head of the queue
-            cur_item = orient(items.pop(item_pos), cur_container)
+            cur_item = items.pop(item_pos)
             available_space_size -= 1
             # Check if item fits in container
             fit = cur_container.is_smaller(cur_item)
-            if not fit[0] and not fit[1] and not fit[2]:
+            if not fit[0] or not fit[1] or not fit[2]:
                 print("Fit:", fit[0], fit[1], fit[2])
-                if available_space_size == 0:
-                    logging.debug("Items remaining: " + str(len(items)))
-                    logging.debug("Shipment size: " + str(len(shipment)))
-                    shipment.append(extract(pallet))
-                    logging.info("Creating new pallet")
-                    pallet = None
-                    pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z,
-                                       containerTemplate.logi_coord, containerTemplate.length,
-                                       containerTemplate.width, containerTemplate.height)
-                    available_spaces.append(pallet)
-                    available_space_size += 1
-                    continue
-
+                # if available_space_size == 0:
+                #     logging.debug("Items remaining: " + str(len(items)))
+                #     logging.debug("Shipment size: " + str(len(shipment)))
+                #     shipment.append(extract(pallet))
+                #     logging.info("Creating new pallet")
+                #     pallet = None
+                #     pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z,
+                #                        containerTemplate.logi_coord, containerTemplate.length,
+                #                        containerTemplate.width, containerTemplate.height)
+                #     available_spaces.append(pallet)
+                #     available_space_size += 1
+                #     continue
                 print("Current: ", cur_container, cur_item)
                 print("Len_items, item_pos: ", len(items), item_pos)
                 print("Available containers: ", available_space_size)
                 items.append(cur_item)
-                available_spaces.insert(1, cur_container)
+                available_spaces.insert(0, cur_container)
+                available_space_size += 1
+                item_pos += 1
                 continue
             cur_container.add_item(cur_item)
             cur_container.create_child(smallest_size)
@@ -83,11 +96,25 @@ def palletize(items: list, containerTemplate: Container) -> list:
         # sort queue
         sort_spaces(available_spaces)
         logging.debug(available_spaces)
+        if len(items) != 0:
+            smallest_size = update_smallest(items)
     logging.debug("Items remaining: " + str(len(items)))
     logging.debug("Shipment size: " + str(len(shipment)))
     shipment.append(extract(pallet))
 
     return shipment
+
+
+def update_smallest(items) -> Item:
+    smallest = [math.inf, math.inf, math.inf]
+    for item in items:
+        if item.length < smallest[0]:
+            smallest[0] = item.length
+        if item.width < smallest[1]:
+            smallest[1] = item.width
+        if item.height < smallest[2]:
+            smallest[2] = item.height
+    return smallest
 
 
 def orient(item: Item, container: Container) -> Item:

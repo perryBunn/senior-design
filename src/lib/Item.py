@@ -4,7 +4,7 @@ class Item:
 
     Attributes
     ----------
-    __length, __width, __height: int
+    __length, __width, height: int
         Dimensions of the container object
     __size: list
         A list of the container dimensions
@@ -48,7 +48,8 @@ class Item:
         self.__volume = self.length * self.width * self.height
         self.__mass = massIn
         self.__serial_number = serial_numberIn
-        self.__rank = (self.height * self.__mass)
+        # Rank can be a point of improvement
+        self.__rank = (self.__volume * self.__mass)
 
     def get_length(self) -> int:
         return self.length

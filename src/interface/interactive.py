@@ -137,7 +137,12 @@ class ApplicationWindow(QMainWindow):
             self.table.setItem(i, 1, QTableWidgetItem("{:.2f}".format(Y[i])))
             self.table.setItem(i, 2, QTableWidgetItem("{:.2f}".format(Z[i])))
 
+    def clear_table_date(self):
+        for i in range(self.table.rowCount()):
+            self.table.setItem(i, 1, QTableWidgetItem(""))
+
     def set_table_data_container(self, X):
+        self.clear_table_date()
         for i in range(len(X)):
             if X[i].item == None:
                 continue
@@ -266,7 +271,7 @@ class ApplicationWindow(QMainWindow):
         print(self.items[0])
         print(self.items[len(self.items) - 1])
         logi = [0, 0, 0]
-        self.containerTemplate = Container(0, 0, 0, logi, 2500, 2500, 2000)
+        self.containerTemplate = Container(0, 0, 0, logi, 2500, 2500, 2500)
         self.shipment = palletize.palletize(self.items, self.containerTemplate)
         print(self.shipment)
 
