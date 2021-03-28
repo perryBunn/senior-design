@@ -155,9 +155,9 @@ class Container:
                 # New container +X of the item
                 if available_length >= smallest_possible_fit[0]:
                     logi_coords = [self.logi_coord[0] + 1, self.logi_coord[1], self.logi_coord[2]]
-                    self.add_container(self.x + self.item.get_length(), self.y, self.z, logi_coords, available_length, available_width, self.height)
+                    self.add_container(self.x + self.item.get_length(), self.y, self.z, logi_coords, available_length, self.width, self.height)
                 else:
-                    self.add_void(self.x + self.item.get_length(), self.y, self.z, available_length, available_width, self.height)
+                    self.add_void(self.x + self.item.get_length(), self.y, self.z, available_length, self.width, self.height)
 
                 # New container +Y of the item
                 if available_width >= smallest_possible_fit[1]:

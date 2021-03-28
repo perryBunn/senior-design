@@ -29,15 +29,18 @@ def palletize(items: list, containerTemplate: Container) -> list:
     smallest_size = items[len(items) - 1].get_size()
     smallest_flag = False
     while len(items) > 0:
-        print("Num Items: ", len(items), "Item Pos: ", item_pos)
+        print("=======================================================================================================")
+        print("Num Items: ", len(items), "Item Pos: ", item_pos, "flag: ", smallest_flag)
         if item_pos >= len(items):
             smallest_flag = True
 
         if available_space_size == 0 or smallest_flag:
             logging.info("Adding full pallet to shipment")
             logging.debug("Items remaining: " + str(len(items)))
+            pallet_ext = extract(pallet)
+            logging.debug("Items packed in pallet: " + str(len(pallet_ext)))
+            shipment.append(pallet_ext)
             logging.debug("Shipment size: " + str(len(shipment)))
-            shipment.append(extract(pallet))
             logging.info("Creating new pallet")
             pallet = None
             pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z, containerTemplate.logi_coord, containerTemplate.length,
@@ -56,26 +59,18 @@ def palletize(items: list, containerTemplate: Container) -> list:
             # Find most efficient orientation
             cur_container = available_spaces.pop(0)  # <-- this gets the head of the queue
             cur_item = items.pop(item_pos)
+            cur_item = orient(cur_item, cur_container)  # Rotates item for most insertions of same item type
             available_space_size -= 1
+            logging.debug("Container: " + cur_container.__str__())
+            logging.debug("Item: " + cur_item.__str__())
             # Check if item fits in container
             fit = cur_container.is_smaller(cur_item)
             if not fit[0] or not fit[1] or not fit[2]:
                 print("Fit:", fit[0], fit[1], fit[2])
-                # if available_space_size == 0:
-                #     logging.debug("Items remaining: " + str(len(items)))
-                #     logging.debug("Shipment size: " + str(len(shipment)))
-                #     shipment.append(extract(pallet))
-                #     logging.info("Creating new pallet")
-                #     pallet = None
-                #     pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z,
-                #                        containerTemplate.logi_coord, containerTemplate.length,
-                #                        containerTemplate.width, containerTemplate.height)
-                #     available_spaces.append(pallet)
-                #     available_space_size += 1
-                #     continue
                 print("Current: ", cur_container, cur_item)
                 print("Len_items, item_pos: ", len(items), item_pos)
                 print("Available containers: ", available_space_size)
+
                 items.append(cur_item)
                 available_spaces.insert(0, cur_container)
                 available_space_size += 1
@@ -88,11 +83,12 @@ def palletize(items: list, containerTemplate: Container) -> list:
                 if con.__class__.__name__ != "Void":
                     available_spaces.append(con)
                     available_space_size += 1
+            logging.debug("Available Space list of dimensions:")
+            for i in available_spaces:
+                logging.debug(str(i.size))
             item_pos = 0
 
-            logging.debug("Container: ", cur_container)
-            logging.debug("Item: ", cur_container.item)
-            logging.debug("Avail_space: ", available_space_size)
+            logging.debug("Avail_space: " + str(available_space_size))
         # sort queue
         sort_spaces(available_spaces)
         logging.debug(available_spaces)
@@ -167,7 +163,7 @@ def orient(item: Item, container: Container) -> Item:
     else:
         # they have the same area, probably a square item
         # I dont think this well ever happen... Unless the container is square.
-        logging.info("The remaining areas for portrait and landscape were the same. Returning the original item...")
+        # logging.info("The remaining areas for portrait and landscape were the same. Returning the original item...")
         return item
 
 
@@ -217,25 +213,9 @@ def sort_spaces(spaces: [Container]) -> list:
     :param spaces:
     :return:
     """
-    # TODO: Need to implement logical coordinates for sorting. Currently if a container is on Z-600 then the loop will
-    #  create a list of length 600. Creating logical coordinates would allow the program to dramatically reduced the
-    #  iterations per sort.
+    result = spaces.copy()
     print("Entering sort_spaces...")
-    levels: list[list[Container]] = [[]]
-    for space in spaces:
-        if space.logi_z >= levels.__len__():
-            while space.logi_z >= levels.__len__():
-                levels.append([])
-            levels[space.logi_z].append(space)
-        else:
-            levels[space.logi_z].append(space)
+    sorted(result, key=lambda x: x.z)
 
-    for level in levels:
-        sorted(level, key=lambda x: x.z)
-
-    result: list = []
-    for level in levels:
-        for container in level:
-            result.append(container)
     print("Exiting sort_spaces...")
     return result

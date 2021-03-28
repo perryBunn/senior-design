@@ -22,9 +22,9 @@ def readExcel(filename: str) -> pd.DataFrame:
         keys = data.keys()
         for key in keys:
             df1 = data[key]
-
+        logging.debug("Exiting readExcel()...")
         return df1
     except FileNotFoundError as e:
         logging.error(e)
         exit(1)
-    logging.debug("Exiting readExcel()...")
+
