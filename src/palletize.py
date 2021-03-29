@@ -29,31 +29,36 @@ def palletize(items: list, containerTemplate: Container) -> list:
     smallest_size = items[len(items) - 1].get_size()
     smallest_flag = False
     while len(items) > 0:
-        print("=======================================================================================================")
-        print("Num Items: ", len(items), "Item Pos: ", item_pos, "flag: ", smallest_flag)
-        if item_pos >= len(items):
+        logging.debug("===============================================================================================")
+        logging.debug(f"Num Items: {len(items)} Item Pos: {item_pos} flag: {smallest_flag}")
+        if item_pos == len(items):
             smallest_flag = True
 
-        if available_space_size == 0 or smallest_flag:
+        if smallest_flag:
+            smallest_flag = False
+            print(f"Available Spaces: {len(available_spaces)} {available_space_size} flag: {smallest_flag}")
+            if len(available_spaces) >= 1:
+                available_spaces.pop(0)
+                available_space_size -= 1
+            item_pos = 0
+            if len(items) != 0:
+                smallest_size = update_smallest(items)
+
+        if len(available_spaces) == 0:
+            logging.info(f"Available space: {available_space_size} flag: {smallest_flag}")
             logging.info("Adding full pallet to shipment")
             logging.debug("Items remaining: " + str(len(items)))
             pallet_ext = extract(pallet)
             logging.debug("Items packed in pallet: " + str(len(pallet_ext)))
             shipment.append(pallet_ext)
             logging.debug("Shipment size: " + str(len(shipment)))
-            logging.info("Creating new pallet")
+            logging.debug("Creating new pallet")
             pallet = None
             pallet = Container(containerTemplate.x, containerTemplate.y, containerTemplate.z, containerTemplate.logi_coord, containerTemplate.length,
                                containerTemplate.width, containerTemplate.height)
             available_spaces.append(pallet)
             available_space_size += 1
-            if smallest_flag:
-                available_spaces.pop(0)
-                available_space_size -= 1
-                smallest_flag = False
-                item_pos = 0
-                if len(items) != 0:
-                    smallest_size = update_smallest(items)
+
             continue
         else:
             # Find most efficient orientation
@@ -66,10 +71,10 @@ def palletize(items: list, containerTemplate: Container) -> list:
             # Check if item fits in container
             fit = cur_container.is_smaller(cur_item)
             if not fit[0] or not fit[1] or not fit[2]:
-                print("Fit:", fit[0], fit[1], fit[2])
-                print("Current: ", cur_container, cur_item)
-                print("Len_items, item_pos: ", len(items), item_pos)
-                print("Available containers: ", available_space_size)
+                logging.debug(f"Fit: {fit[0]} {fit[1]} {fit[2]}")
+                logging.debug(f"Current: {cur_container} {cur_item}")
+                logging.debug(f"Len_items, item_pos: {len(items)} {item_pos}")
+                logging.debug(f"Available containers: {available_space_size}")
 
                 items.append(cur_item)
                 available_spaces.insert(0, cur_container)
@@ -92,6 +97,8 @@ def palletize(items: list, containerTemplate: Container) -> list:
         # sort queue
         sort_spaces(available_spaces)
         logging.debug(available_spaces)
+        if available_space_size % 10 == 0:
+            purge_available_smallest(available_spaces, smallest_size)
         if len(items) != 0:
             smallest_size = update_smallest(items)
     logging.debug("Items remaining: " + str(len(items)))
@@ -101,7 +108,25 @@ def palletize(items: list, containerTemplate: Container) -> list:
     return shipment
 
 
-def update_smallest(items) -> Item:
+def purge_available_smallest(spaces: [Container], smallest):
+    logging.debug("Entering Purge()...")
+    pos = 0
+    for cont in spaces:
+        logging.debug(f"{pos} {len(spaces)} {cont.size} {smallest}")
+        if cont.length < smallest[0]:
+            spaces.pop(pos)
+            continue
+        if cont.width < smallest[1]:
+            spaces.pop(pos)
+            continue
+        if cont.height < smallest[2]:
+            spaces.pop(pos)
+            continue
+        pos += 1
+    logging.debug("Exiting Purge()...")
+
+
+def update_smallest(items) -> [int, int, int]:
     smallest = [math.inf, math.inf, math.inf]
     for item in items:
         if item.length < smallest[0]:

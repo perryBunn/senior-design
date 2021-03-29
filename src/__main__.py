@@ -45,6 +45,9 @@ def main():
     logging.basicConfig(filename=f'../logs/{time_str}_debug.log', level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s')
     logging.captureWarnings(True)
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    logging.getLogger('').addHandler(console)
     logging.debug("Debug")
     logging.info("Info")
     logging.warning("Warning")
@@ -69,11 +72,8 @@ def main():
         data = Ingest.ingest("../", c.ingest[0])
         items = init(data)
         items = Sort.item_sort(items)
-        print(items[0])
-        print(items[len(items) - 1])
         container = Container.Container(0, 0, 0, 2000, 3000, 2000)
         shipment = palletize.palletize(items, container)
-        print(shipment)
         for pallet in shipment:
             print("Pallet: ")
             for i in pallet:
