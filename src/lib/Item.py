@@ -49,7 +49,7 @@ class Item:
         self.__mass = massIn
         self.__serial_number = serial_numberIn
         # Rank can be a point of improvement
-        self.__rank = (self.__volume)
+        self.__rank = (self.__volume * self.__mass)
 
     def get_length(self) -> int:
         return self.length
