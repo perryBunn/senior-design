@@ -16,7 +16,7 @@ def palletize(items: list, containerTemplate: Container) -> list:
         put in. If there are more containers that need to be created it will be copies of this object.
 
     Return:
-    pallets: list[deque] - List of item queues.
+    pallets: list[list] - List of list of items.
     """
 
     available_spaces = []
@@ -100,7 +100,7 @@ def palletize(items: list, containerTemplate: Container) -> list:
         if available_space_size % 10 == 0:
             purge_available_smallest(available_spaces, smallest_size)
         if len(items) != 0:
-            smallest_size = update_smallest(items)
+            smallest_size = update_smallest(items, smallest_size)
     logging.debug("Items remaining: " + str(len(items)))
     logging.debug("Shipment size: " + str(len(shipment)))
     shipment.append(extract(pallet))
@@ -114,27 +114,39 @@ def purge_available_smallest(spaces: [Container], smallest):
     for cont in spaces:
         logging.debug(f"{pos} {len(spaces)} {cont.size} {smallest}")
         if cont.length < smallest[0]:
-            spaces.pop(pos)
+            temp = spaces.pop(pos)
+            print("Purged: ", temp)
             continue
         if cont.width < smallest[1]:
-            spaces.pop(pos)
+            temp = spaces.pop(pos)
+            print("Purged: ", temp)
             continue
         if cont.height < smallest[2]:
-            spaces.pop(pos)
+            temp = spaces.pop(pos)
+            print("Purged: ", temp)
             continue
         pos += 1
     logging.debug("Exiting Purge()...")
 
 
-def update_smallest(items) -> [int, int, int]:
-    smallest = [math.inf, math.inf, math.inf]
+def update_smallest(items, smallest: [int, int, int]) -> [int, int, int]:
+    edit = False
     for item in items:
-        if item.length < smallest[0]:
-            smallest[0] = item.length
-        if item.width < smallest[1]:
-            smallest[1] = item.width
+        side = math.inf
+        if item.length < item.width:
+            side = item.length
+        else:
+            side = item.width
+
+        if side < smallest[0]:
+            edit = True
+            smallest[0] = side
+            smallest[1] = side
         if item.height < smallest[2]:
+            edit = True
             smallest[2] = item.height
+    if edit is True:
+        logging.info("New smallest item: " + str(smallest))
     return smallest
 
 
@@ -240,7 +252,20 @@ def sort_spaces(spaces: [Container]) -> list:
     """
     result = spaces.copy()
     print("Entering sort_spaces...")
-    sorted(result, key=lambda x: x.z)
 
+    # This line was not sorting the spaces, leaving it for future editing. I feel that its related to the lambda func.
+    # sorted(result, key=lambda x: x.z)
+    res = insertion(spaces, 0, len(spaces) - 1)
+    for x in res:
+        print(x.logi_coord, x.size)
     print("Exiting sort_spaces...")
-    return result
+    return res
+
+
+def insertion(arr, left, right) -> list:
+    for i in range(left + 1, right + 1):
+        j = i
+        while j > left and arr[j].z < arr[j - 1].z:
+            arr[j], arr[j - 1] = arr[j - 1], arr[j]
+            j -= 1
+    return arr

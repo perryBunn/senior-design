@@ -68,16 +68,16 @@ def main():
         interactive.start()
     else:
         logging.debug("GUI not started...")
-    if len(c.ingest) > 0:
-        data = Ingest.ingest("../", c.ingest[0])
-        items = init(data)
-        items = Sort.item_sort(items)
-        container = Container.Container(0, 0, 0, 2000, 3000, 2000)
-        shipment = palletize.palletize(items, container)
-        for pallet in shipment:
-            print("Pallet: ")
-            for i in pallet:
-                print(i.x, i.y, i.z, i.item)
+        if len(c.ingest) > 0:
+            data = Ingest.ingest("../", c.ingest[0])
+            items = init(data)
+            items = Sort.item_sort(items)
+            container = Container.Container(0, 0, 0, 1087, 1277, 980)
+            shipment = palletize.palletize(items, container)
+            for pallet in shipment:
+                print("Pallet: ")
+                for i in pallet:
+                    print(i.x, i.y, i.z, i.item)
 
 
 if __name__ == '__main__':

@@ -179,13 +179,13 @@ class ApplicationWindow(QMainWindow):
         return sha.hexdigest()[:3]
 
     def load_list(self):
-        self.data = Ingest.ingest("../", 'IngestTemplate.xlsx')
+        self.data = Ingest.ingest("../", 'Book1.xlsx')
         self.items = init(self.data)
         self.items = Sort.item_sort(self.items)
         print(self.items[0])
         print(self.items[len(self.items) - 1])
         logi = [0, 0, 0]
-        self.containerTemplate = Container(0, 0, 0, logi, 2500, 2500, 2500)
+        self.containerTemplate = Container(0, 0, 0, logi, 1087, 1277, 980)
         self.shipment = palletize.palletize(self.items, self.containerTemplate)
         print(self.shipment)
 
@@ -246,6 +246,7 @@ class ApplicationWindow(QMainWindow):
         if hasattr(self, "_ax"):
             self._ax.cla()
         self.set_canvas_table_configuration_containers(len(self.shipment), self.shipment[index])
+
         for container in shipment[index]:
             print(container)
             if container.item is None:
@@ -268,10 +269,22 @@ class ApplicationWindow(QMainWindow):
                 [verts[0], verts[2], verts[6], verts[4]],  # East
                 [verts[1], verts[3], verts[7], verts[5]]   # West
             ]
+
             self._ax.scatter3D(verts[:, 0], verts[:, 1], verts[:, 2])
             color = self.serial_hash(container.item.get_serial())
-            print(color)
             self._ax.add_collection3d(Poly3DCollection(faces, facecolors=f'#{color}', linewidths=1, edgecolors='b', alpha=.4))
+
+        verts = np.array([
+            [self.containerTemplate.x, self.containerTemplate.y, self.containerTemplate.z],  # 0
+            [self.containerTemplate.x + self.containerTemplate.length, self.containerTemplate.y, self.containerTemplate.z],  # 1
+            [self.containerTemplate.x, self.containerTemplate.y + self.containerTemplate.width, self.containerTemplate.z],  # 2
+            [self.containerTemplate.x + self.containerTemplate.length, self.containerTemplate.y + self.containerTemplate.width, self.containerTemplate.z],  # 3
+            [self.containerTemplate.x, self.containerTemplate.y, self.containerTemplate.z + self.containerTemplate.height],  # 4
+            [self.containerTemplate.x + self.containerTemplate.length, self.containerTemplate.y, self.containerTemplate.z + self.containerTemplate.height],  # 5
+            [self.containerTemplate.x, self.containerTemplate.y + self.containerTemplate.width, self.containerTemplate.z + self.containerTemplate.height],  # 6
+            [self.containerTemplate.x + self.containerTemplate.length, self.containerTemplate.y + self.containerTemplate.width, self.containerTemplate.z + self.containerTemplate.height],  # 7
+        ])
+        self._ax.scatter3D(verts[:, 0], verts[:, 1], verts[:, 2])
 
         self._ax.set_xlabel('X')
         self._ax.set_ylabel('Y')
