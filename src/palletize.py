@@ -183,15 +183,12 @@ def orient(item: Item, container: Container) -> Item:
         tiles_l[1] += 1
 
     # Compare
-    remain_por_x = container.length - ((tiles_p[0]-1)*item.get_length())
-    remain_por_y = container.width - ((tiles_p[1]-1)*item.get_width())
+    item_area = item.get_length() * item.get_width()
+    consumed_area_land = ((tiles_l[0]-1) * item_area) * (tiles_l[1]-1)
+    consumed_area_port = ((tiles_p[0]-1) * item_area) * (tiles_p[1]-1)
 
-    remain_lan_x = container.length - ((tiles_l[0]-1)*copy.get_length())
-    remain_lan_y = container.width - ((tiles_l[1]-1)*copy.get_width())
-
-    remain_por_area = (remain_por_x*container.width) + (remain_por_y*container.length) - (remain_por_y*remain_por_x)
-    remain_lan_area = (remain_lan_x * container.width) + (remain_lan_y * container.length) - \
-                      (remain_lan_y * remain_lan_x)
+    remain_lan_area = (container.length*container.width) - consumed_area_land
+    remain_por_area = (container.length*container.width) - consumed_area_port
 
     if remain_por_area < remain_lan_area:
         return item
@@ -199,8 +196,8 @@ def orient(item: Item, container: Container) -> Item:
         return copy
     else:
         # they have the same area, probably a square item
-        # I dont think this well ever happen... Unless the container is square.
-        # logging.info("The remaining areas for portrait and landscape were the same. Returning the original item...")
+        logging.info("The remaining areas for portrait and landscape were the same. Returning the original item...")
+        logging.info(str(item))
         return item
 
 
@@ -213,21 +210,20 @@ def extract(pallet: Container):
     :param pallet:
     :return:
     """
-    # print("Entering extract...")
     items = []
     # recurse through pallet
     items = extract_rec(pallet)
-    # print("Items: ", items)
     # Sort items
     sorted(items, key=lambda x: x.z)
-    # print(items[0].z, items[len(items) - 1].z)
-    # for i in items:
-    #     print(i.x, i.y, i.z, i.item)
-    # print("Exiting extract...")
     return items
 
 
 def extract_rec(pallet: Container):
+    """ Treat this method as a black box, feed pallet container receive list of items.
+
+    :param pallet:
+    :return:
+    """
     items = [pallet]
     if len(pallet.children) != 0:
         for child in pallet.children:

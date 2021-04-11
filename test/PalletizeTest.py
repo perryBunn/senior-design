@@ -8,7 +8,7 @@ from src.palletize import *
 class MyTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.container = Container(0, 0, 0, 30, 20, 100)
+        self.container = Container(0, 0, 0, [0, 0, 0], 30, 20, 100)
 
     def testOrient_1(self):
         item = Item(15, 10, 5, 5, "1")

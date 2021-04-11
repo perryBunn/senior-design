@@ -11,7 +11,7 @@ class SortTest(unittest.TestCase):
     length = 10000
 
     def setUp(self) -> None:
-        self.container = Container.Container(0, 0, 0, 100, 100, 100)
+        self.container = Container.Container(0, 0, 0, [0, 0, 0], 100, 100, 100)
 
     def testInsertionSort(self):
         test_list = []

@@ -252,14 +252,14 @@ class ApplicationWindow(QMainWindow):
             if container.item is None:
                 continue
             verts = np.array([
-                [container.x, container.y, container.z],                                                                           # 0
-                [container.x+container.item.get_length(), container.y, container.z],                                                    # 1
-                [container.x, container.y+container.item.get_width(), container.z],                                                     # 2
-                [container.x+container.item.get_length(), container.y+container.item.get_width(), container.z],                              # 3
-                [container.x, container.y, container.z+container.item.get_height()],                                                    # 4
-                [container.x + container.item.get_length(), container.y, container.z+container.item.get_height()],                           # 5
-                [container.x, container.y + container.item.get_width(), container.z+container.item.get_height()],                            # 6
-                [container.x + container.item.get_length(), container.y + container.item.get_width(), container.z+container.item.get_height()],   # 7
+                [container.x, container.y, container.z],                                                                                         # 0
+                [container.x+container.item.get_length(), container.y, container.z],                                                             # 1
+                [container.x, container.y+container.item.get_width(), container.z],                                                              # 2
+                [container.x+container.item.get_length(), container.y+container.item.get_width(), container.z],                                  # 3
+                [container.x, container.y, container.z+container.item.get_height()],                                                             # 4
+                [container.x + container.item.get_length(), container.y, container.z+container.item.get_height()],                               # 5
+                [container.x, container.y + container.item.get_width(), container.z+container.item.get_height()],                                # 6
+                [container.x + container.item.get_length(), container.y + container.item.get_width(), container.z+container.item.get_height()],  # 7
             ])
             faces = [
                 [verts[0], verts[1], verts[3], verts[2]],  # Top
@@ -270,7 +270,7 @@ class ApplicationWindow(QMainWindow):
                 [verts[1], verts[3], verts[7], verts[5]]   # West
             ]
 
-            self._ax.scatter3D(verts[:, 0], verts[:, 1], verts[:, 2])
+            self._ax.scatter3D(verts[:, 0], verts[:, 1], verts[:, 2], alpha=0)
             color = self.serial_hash(container.item.get_serial())
             self._ax.add_collection3d(Poly3DCollection(faces, facecolors=f'#{color}', linewidths=1, edgecolors='b', alpha=.4))
 

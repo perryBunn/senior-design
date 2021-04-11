@@ -7,7 +7,7 @@ class ContainerTest(unittest.TestCase):
     container: Container
 
     def setUp(self) -> None:
-        self.container = Container(0, 0, 0, 100, 100, 100)
+        self.container = Container(0, 0, 0, [0, 0, 0], 100, 100, 100)
 
     def testX(self):
         self.assertEqual(self.container.x, 0)
@@ -70,7 +70,7 @@ class ContainerTest(unittest.TestCase):
         self.assertEqual(self.container.available_size(), [100, 100, 100])
 
     def testNewContainer(self):
-        self.container.add_container(1, 0, 0, 50, 50, 50)
+        self.container.add_container(1, 0, 0, [0, 0, 0], 50, 50, 50)
         self.assertEqual(self.container.children[0].length, 50)
 
     def tearDown(self) -> None:
