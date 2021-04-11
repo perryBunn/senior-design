@@ -1,3 +1,4 @@
+import logging
 import sys
 
 import PySide2
@@ -30,7 +31,7 @@ def init(data) -> list:
     items = []
     for item in data.iterrows():
         obj = Item(item[1]["Length"], item[1]["Width"], item[1]["Height"], item[1]["Weight"],
-                        item[1]["Code/Serial Number"])
+                   str(item[1]["Code/Serial Number"]))
         items.append(obj)
     return items
 
@@ -121,7 +122,7 @@ class ApplicationWindow(QMainWindow):
         self._ax.view_init(30, 30)
         self.slider_azim.setValue(30)
         self.slider_elev.setValue(30)
-        #self.fig.canvas.mpl_connect("button_release_event", self.on_click)
+        # self.fig.canvas.mpl_connect("button_release_event", self.on_click)
 
     # Matplotlib slot method
     def on_click(self, event):
@@ -137,11 +138,18 @@ class ApplicationWindow(QMainWindow):
             self.table.setItem(i, 1, QTableWidgetItem("{:.2f}".format(Y[i])))
             self.table.setItem(i, 2, QTableWidgetItem("{:.2f}".format(Z[i])))
 
+    def clear_table_date(self):
+        for i in range(self.table.rowCount()):
+            self.table.setItem(i, 1, QTableWidgetItem(""))
+
     def set_table_data_container(self, X):
+        self.clear_table_date()
+        table_row = 0
         for i in range(len(X)):
-            if X[i].item == None:
+            if X[i].item is None:
                 continue
-            self.table.setItem(i, 0, QTableWidgetItem(X[i].item.get_serial()))
+            self.table.setItem(table_row, 0, QTableWidgetItem(X[i].item.get_serial()))
+            table_row += 1
 
     def set_canvas_table_configuration(self, row_count, data):
         self.fig.set_canvas(self.canvas)
@@ -164,6 +172,22 @@ class ApplicationWindow(QMainWindow):
         self.table.setColumnCount(1)
         self.table.setHorizontalHeaderLabels(self.column_names)
         self.set_table_data_container(data)
+
+    def serial_hash(self, item_serial: str) -> str:
+        sha = hashlib.sha256()
+        sha.update(item_serial.encode())
+        return sha.hexdigest()[:3]
+
+    def load_list(self):
+        self.data = Ingest.ingest("../", 'Book1.xlsx')
+        self.items = init(self.data)
+        self.items = Sort.item_sort(self.items)
+        print(self.items[0])
+        print(self.items[len(self.items) - 1])
+        logi = [0, 0, 0]
+        self.containerTemplate = Container(0, 0, 0, logi, 1087, 1277, 980)
+        self.shipment = palletize.palletize(self.items, self.containerTemplate)
+        print(self.shipment)
 
     # Plot methods
 
@@ -218,57 +242,54 @@ class ApplicationWindow(QMainWindow):
 
         self.canvas.draw()
 
-    def serial_hash(self, item_serial: str) -> str:
-        sha = hashlib.sha256()
-        sha.update(item_serial.encode())
-        return sha.hexdigest()[:3]
-
     def plot_dyn_cube(self, shipment: list, index: int):
         if hasattr(self, "_ax"):
             self._ax.cla()
         self.set_canvas_table_configuration_containers(len(self.shipment), self.shipment[index])
-        for item in shipment[index]:
-            print(item)
-            if item.item == None:
+
+        for container in shipment[index]:
+            print(container)
+            if container.item is None:
                 continue
-            Z = np.array([
-                [item.x, item.y, item.z],                                                                           # 0
-                [item.x+item.item.get_length(), item.y, item.z],                                                    # 1
-                [item.x, item.y+item.item.get_width(), item.z],                                                     # 2
-                [item.x+item.item.get_length(), item.y+item.item.get_width(), item.z],                              # 3
-                [item.x, item.y, item.z+item.item.get_height()],                                                    # 4
-                [item.x + item.item.get_length(), item.y, item.z+item.item.get_height()],                           # 5
-                [item.x, item.y + item.item.get_width(), item.z+item.item.get_height()],                            # 6
-                [item.x + item.item.get_length(), item.y + item.item.get_width(), item.z+item.item.get_height()],   # 7
+            verts = np.array([
+                [container.x, container.y, container.z],                                                                                         # 0
+                [container.x+container.item.get_length(), container.y, container.z],                                                             # 1
+                [container.x, container.y+container.item.get_width(), container.z],                                                              # 2
+                [container.x+container.item.get_length(), container.y+container.item.get_width(), container.z],                                  # 3
+                [container.x, container.y, container.z+container.item.get_height()],                                                             # 4
+                [container.x + container.item.get_length(), container.y, container.z+container.item.get_height()],                               # 5
+                [container.x, container.y + container.item.get_width(), container.z+container.item.get_height()],                                # 6
+                [container.x + container.item.get_length(), container.y + container.item.get_width(), container.z+container.item.get_height()],  # 7
             ])
-            verts = [
-                [Z[0], Z[1], Z[3], Z[2]],  # Top
-                [Z[4], Z[5], Z[7], Z[6]],  # Bottom
-                [Z[2], Z[3], Z[7], Z[6]],  # North
-                [Z[0], Z[1], Z[5], Z[4]],  # South
-                [Z[0], Z[2], Z[6], Z[4]],  # East
-                [Z[1], Z[3], Z[7], Z[5]]   # West
+            faces = [
+                [verts[0], verts[1], verts[3], verts[2]],  # Top
+                [verts[4], verts[5], verts[7], verts[6]],  # Bottom
+                [verts[2], verts[3], verts[7], verts[6]],  # North
+                [verts[0], verts[1], verts[5], verts[4]],  # South
+                [verts[0], verts[2], verts[6], verts[4]],  # East
+                [verts[1], verts[3], verts[7], verts[5]]   # West
             ]
-            self._ax.scatter3D(Z[:, 0], Z[:, 1], Z[:, 2])
-            color = self.serial_hash(item.item.get_serial())
-            print(color)
-            self._ax.add_collection3d(Poly3DCollection(verts, facecolors=f'#{color}', linewidths=1, edgecolors='b', alpha=.4))
+
+            self._ax.scatter3D(verts[:, 0], verts[:, 1], verts[:, 2], alpha=0)
+            color = self.serial_hash(container.item.get_serial())
+            self._ax.add_collection3d(Poly3DCollection(faces, facecolors=f'#{color}', linewidths=1, edgecolors='b', alpha=.4))
+
+        verts = np.array([
+            [self.containerTemplate.x, self.containerTemplate.y, self.containerTemplate.z],  # 0
+            [self.containerTemplate.x + self.containerTemplate.length, self.containerTemplate.y, self.containerTemplate.z],  # 1
+            [self.containerTemplate.x, self.containerTemplate.y + self.containerTemplate.width, self.containerTemplate.z],  # 2
+            [self.containerTemplate.x + self.containerTemplate.length, self.containerTemplate.y + self.containerTemplate.width, self.containerTemplate.z],  # 3
+            [self.containerTemplate.x, self.containerTemplate.y, self.containerTemplate.z + self.containerTemplate.height],  # 4
+            [self.containerTemplate.x + self.containerTemplate.length, self.containerTemplate.y, self.containerTemplate.z + self.containerTemplate.height],  # 5
+            [self.containerTemplate.x, self.containerTemplate.y + self.containerTemplate.width, self.containerTemplate.z + self.containerTemplate.height],  # 6
+            [self.containerTemplate.x + self.containerTemplate.length, self.containerTemplate.y + self.containerTemplate.width, self.containerTemplate.z + self.containerTemplate.height],  # 7
+        ])
+        self._ax.scatter3D(verts[:, 0], verts[:, 1], verts[:, 2])
 
         self._ax.set_xlabel('X')
         self._ax.set_ylabel('Y')
         self._ax.set_zlabel('Z')
         self.canvas.draw()
-
-    def load_list(self):
-        self.data = Ingest.ingest("../", 'IngestTemplate.xlsx')
-        self.items = init(self.data)
-        self.items = Sort.item_sort(self.items)
-        print(self.items[0])
-        print(self.items[len(self.items) - 1])
-        logi = [0, 0, 0]
-        self.containerTemplate = Container(0, 0, 0, logi, 2500, 2500, 2000)
-        self.shipment = palletize.palletize(self.items, self.containerTemplate)
-        print(self.shipment)
 
     # Slots
 
@@ -301,9 +322,13 @@ class ApplicationWindow(QMainWindow):
         self.canvas.draw()
 
 
-if __name__ == "__main__":
+def start():
     app = QApplication(sys.argv)
     w = ApplicationWindow()
     w.setFixedSize(1280, 720)
     w.show()
     app.exec_()
+
+
+if __name__ == "__main__":
+    start()
