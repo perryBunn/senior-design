@@ -5,11 +5,11 @@ import PySide2
 import numpy as np
 from itertools import product, combinations
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from matplotlib.backends.backend_qt5agg import FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import axes3d
 from PySide2.QtCore import Qt, Slot
-from PySide2.QtGui import QKeySequence
+from PySide2.QtGui import QKeySequence, QColor
 from PySide2.QtWidgets import (QAction, QApplication, QComboBox, QHBoxLayout,
                                QHeaderView, QLabel, QMainWindow, QSlider,
                                QTableWidget, QTableWidgetItem, QVBoxLayout,
@@ -138,18 +138,28 @@ class ApplicationWindow(QMainWindow):
             self.table.setItem(i, 1, QTableWidgetItem("{:.2f}".format(Y[i])))
             self.table.setItem(i, 2, QTableWidgetItem("{:.2f}".format(Z[i])))
 
-    def clear_table_date(self):
+    def clear_table_data(self):
         for i in range(self.table.rowCount()):
-            self.table.setItem(i, 1, QTableWidgetItem(""))
+            for j in range(self.table.colorCount()):
+                self.table.setItem(i, j, QTableWidgetItem(""))
 
-    def set_table_data_container(self, X):
-        self.clear_table_date()
+    def set_table_data_container(self, data):
+        self.clear_table_data()
         table_row = 0
-        for i in range(len(X)):
-            if X[i].item is None:
+        seen = []
+        for i in range(len(data)):
+            if data[i].item is None or data[i].item.get_serial() in seen:
                 continue
-            self.table.setItem(table_row, 0, QTableWidgetItem(X[i].item.get_serial()))
+
+            color = QColor()
+            hex_code = f'#{self.serial_hash(data[i].item.get_serial())}'
+            color.setNamedColor(hex_code)
+            print(hex_code)
+            self.table.setItem(table_row, 0, QTableWidgetItem())
+            self.table.item(table_row, 0).setBackground(color)
+            self.table.setItem(table_row, 1, QTableWidgetItem(data[i].item.get_serial()))
             table_row += 1
+            seen.append(data[i].item.get_serial())
 
     def set_canvas_table_configuration(self, row_count, data):
         self.fig.set_canvas(self.canvas)
@@ -169,14 +179,14 @@ class ApplicationWindow(QMainWindow):
         self._ax = self.canvas.figure.add_subplot(projection="3d")
 
         self.table.setRowCount(row_count)
-        self.table.setColumnCount(1)
+        self.table.setColumnCount(2)
         self.table.setHorizontalHeaderLabels(self.column_names)
         self.set_table_data_container(data)
 
     def serial_hash(self, item_serial: str) -> str:
         sha = hashlib.sha256()
         sha.update(item_serial.encode())
-        return sha.hexdigest()[:3]
+        return sha.hexdigest()[:6]
 
     def load_list(self):
         self.data = Ingest.ingest("../", 'Book1.xlsx')
@@ -272,7 +282,7 @@ class ApplicationWindow(QMainWindow):
 
             self._ax.scatter3D(verts[:, 0], verts[:, 1], verts[:, 2], alpha=0)
             color = self.serial_hash(container.item.get_serial())
-            self._ax.add_collection3d(Poly3DCollection(faces, facecolors=f'#{color}', linewidths=1, edgecolors='b', alpha=.4))
+            self._ax.add_collection3d(Poly3DCollection(faces, facecolors=f'#{color}', linewidths=1, edgecolors='b', alpha=.5))
 
         verts = np.array([
             [self.containerTemplate.x, self.containerTemplate.y, self.containerTemplate.z],  # 0
