@@ -1,5 +1,8 @@
-# Getting Started
+# Links
+- [Changelog](changelog.md)
 
+
+# Getting Started
 ## Git (VCS)
 Download: https://git-scm.com/downloads
 

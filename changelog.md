@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 4-15-21
+### Added
+- Box color next to item serial number
+
 ## [0.2.0] - 4-10-21
 ### Added
 - Started Changelog file

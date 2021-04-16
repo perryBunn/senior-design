@@ -146,17 +146,20 @@ class ApplicationWindow(QMainWindow):
     def set_table_data_container(self, data):
         self.clear_table_data()
         table_row = 0
+        seen = []
         for i in range(len(data)):
-            if data[i].item is None:
+            if data[i].item is None or data[i].item.get_serial() in seen:
                 continue
 
             color = QColor()
             hex_code = f'#{self.serial_hash(data[i].item.get_serial())}'
             color.setNamedColor(hex_code)
             print(hex_code)
-            self.table.setItem(table_row, 0, QTableWidgetItem(hex_code).setBackground(color))
+            self.table.setItem(table_row, 0, QTableWidgetItem())
+            self.table.item(table_row, 0).setBackground(color)
             self.table.setItem(table_row, 1, QTableWidgetItem(data[i].item.get_serial()))
             table_row += 1
+            seen.append(data[i].item.get_serial())
 
     def set_canvas_table_configuration(self, row_count, data):
         self.fig.set_canvas(self.canvas)
@@ -279,7 +282,7 @@ class ApplicationWindow(QMainWindow):
 
             self._ax.scatter3D(verts[:, 0], verts[:, 1], verts[:, 2], alpha=0)
             color = self.serial_hash(container.item.get_serial())
-            self._ax.add_collection3d(Poly3DCollection(faces, facecolors=f'#{color}', linewidths=1, edgecolors='b', alpha=.4))
+            self._ax.add_collection3d(Poly3DCollection(faces, facecolors=f'#{color}', linewidths=1, edgecolors='b', alpha=.5))
 
         verts = np.array([
             [self.containerTemplate.x, self.containerTemplate.y, self.containerTemplate.z],  # 0
