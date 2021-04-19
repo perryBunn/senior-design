@@ -1,14 +1,13 @@
 from src.lib.Container import Container
 from src.lib.Item import Item
 from src.lib.Void import Void
-from collections import deque
 import logging
 import math
 
 
 def palletize(items: list, containerTemplate: Container) -> list:
-    """ Takes in a list and a container object, will return a list of item queues. Will iterate through the item list
-        and create queues of items to be packed. Once the first container is full it will create a new pallet.
+    """ Takes in a list and a container object, will return a list of item list. Will iterate through the item list
+        and create list of items to be packed. Once the first container is full it will create a new pallet.
 
     Parameters:
     items: list - List of items in packing list
@@ -42,7 +41,7 @@ def palletize(items: list, containerTemplate: Container) -> list:
                 available_space_size -= 1
             item_pos = 0
             if len(items) != 0:
-                smallest_size = update_smallest(items)
+                smallest_size = update_smallest(items, smallest_size)
 
         if len(available_spaces) == 0:
             logging.info(f"Available space: {available_space_size} flag: {smallest_flag}")
@@ -62,7 +61,7 @@ def palletize(items: list, containerTemplate: Container) -> list:
             continue
         else:
             # Find most efficient orientation
-            cur_container = available_spaces.pop(0)  # <-- this gets the head of the queue
+            cur_container = available_spaces.pop(0)  # <-- this gets the head of the list
             cur_item = items.pop(item_pos)
             cur_item = orient(cur_item, cur_container)  # Rotates item for most insertions of same item type
             available_space_size -= 1
@@ -94,7 +93,7 @@ def palletize(items: list, containerTemplate: Container) -> list:
             item_pos = 0
 
             logging.debug("Avail_space: " + str(available_space_size))
-        # sort queue
+        # sort list
         sort_spaces(available_spaces)
         logging.debug(available_spaces)
         if available_space_size % 10 == 0:
@@ -202,7 +201,7 @@ def orient(item: Item, container: Container) -> Item:
 
 
 def extract(pallet: Container):
-    """ Will iterate through the container and add the items to the queue based on the coordinates of the package. It
+    """ Will iterate through the container and add the items to the list based on the coordinates of the package. It
         Needs to recurse through all of the packages and then based on those
 
     Z is the most important as the lower the Z the item must be packed first.

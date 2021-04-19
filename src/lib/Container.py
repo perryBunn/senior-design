@@ -88,7 +88,6 @@ class Container:
         self.height = height
         self.size = [self.length, self.width, self.height]
         self.volume = self.length * self.width * self.height
-        self.reserved_size = [self.reserved_length, self.reserved_width, self.reserved_height]
         self.available_volume = self.volume - self.reserved_volume
         if item is not None:
             self.item = item
@@ -137,14 +136,14 @@ class Container:
     def create_child(self, smallest_possible_fit: [int, int, int], item: Item = None):
         """ Visualization
         Top looking down                          Y-axis looking at X     X-axis looking at Y
-        (0,0,0) x--------------------             ------------------      ------------------
-                | Item    | Child x |             | Child z        |      | Child z        |
-                |         |         |             |                |      |                |
-                -----------         |             |                |      |                |
-                |         |         |             ------------------      ------------------
-                | Child y |         |             | Item | Child y |      | Child x | Item |
-                |         |         |             |      |         |      |         |      |
-                ---------------------     (0,0,0) x-----------------      -----------------x (0,0,0)
+        (0,0,0) x--------------------             ---------------------      ---------------------
+                | Item    | Child x |             | Child z |         |      |         |         |
+                |         |         |             |         |         |      |         |         |
+                -----------         |             |         |         |      |         | Child z |
+                |         |         |             ----------|         |      |         |----------
+                | Child y |         |             | Item    | Child y |      | Child x | Item    |
+                |         |         |             |         |         |      |         |         |
+                ---------------------     (0,0,0) x--------------------      --------------------x (0,0,0)
         """
         if type(self) is not Void:
             if item is None:  # There is an item in the container
@@ -226,16 +225,24 @@ class Container:
             res[2] = True
         return res
 
+    @DeprecationWarning
     def available_length(self) -> int:
+        warnings.warn("Available dimension methods are deprecated.", DeprecationWarning)
         return self.length - self.reserved_length
 
+    @DeprecationWarning
     def available_width(self) -> int:
+        warnings.warn("Available dimension methods are deprecated.", DeprecationWarning)
         return self.width - self.reserved_width
 
+    @DeprecationWarning
     def available_height(self) -> int:
+        warnings.warn("Available dimension methods are deprecated.", DeprecationWarning)
         return self.height - self.reserved_height
 
+    @DeprecationWarning
     def available_size(self) -> [int, int, int]:
+        warnings.warn("Available dimension methods are deprecated.", DeprecationWarning)
         return [self.available_length(), self.available_width(), self.available_height()]
 
     def __str__(self):

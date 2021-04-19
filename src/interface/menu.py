@@ -2,14 +2,14 @@ import sys
 import random
 from PySide6 import QtCore, QtWidgets, QtGui
 
-from interface import gui
+from interface import interactive
 
 
 class Menu(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.w = gui.Gui()
+        self.w = interactive.start()
 
         self.pack_button = QtWidgets.QPushButton("Pack!")
         self.config_button = QtWidgets.QPushButton("Config")

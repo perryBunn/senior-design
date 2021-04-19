@@ -52,7 +52,7 @@ class Gui(QtWidgets.QWidget):
         self.update_table()
 
     def load_list(self):
-        self.data = Ingest.ingest("../", 'IngestTemplate.xlsx')
+        self.data = Ingest.ingest("../../", 'IngestTemplate.xlsx')
         self.items = init(self.data)
         self.items = Sort.item_sort(self.items)
         print(self.items[0])
@@ -88,3 +88,6 @@ def start():
     widget.show()
 
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    start()

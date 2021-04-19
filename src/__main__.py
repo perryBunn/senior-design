@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 
 from interface import menu, interactive
-from lib import Item, Container
+from lib import Item, Container, analytics
 import Sort
 import palletize
 import time
@@ -64,20 +64,21 @@ def main():
     if not c.nogui:
         # Start GUI
         logging.debug("Starting GUI...")
-        # menu.start()
-        interactive.start()
+        menu.start()
+        # interactive.start()
     else:
         logging.debug("GUI not started...")
         if len(c.ingest) > 0:
             data = Ingest.ingest("../", c.ingest[0])
             items = init(data)
             items = Sort.item_sort(items)
-            container = Container.Container(0, 0, 0, 1087, 1277, 980)
-            shipment = palletize.palletize(items, container)
-            for pallet in shipment:
-                print("Pallet: ")
-                for i in pallet:
-                    print(i.x, i.y, i.z, i.item)
+            container = Container.Container(0, 0, 0, [0, 0, 0], 2000, 2000, 2200)
+            pallets = palletize.palletize(items, container)
+            analytics.stats(pallets, container)
+            # for pallet in pallets:
+            #     print("Pallet: ")
+            #     for i in pallet:
+            #         print(i.x, i.y, i.z, i.item)
 
 
 if __name__ == '__main__':

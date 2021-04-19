@@ -31,6 +31,8 @@ class Item:
         Returns the mass of the item
     get_serial() -> str:
         Returns the serial_number of the item
+    get_rank() -> int:
+        Returns the rank of the item
     """
 
     length, width, height = -1, -1, -1
